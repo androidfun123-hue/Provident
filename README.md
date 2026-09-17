@@ -42,3 +42,4 @@ At personal-practice traffic levels: $0-2/month total.
 ## Rate limiting note
 
 The current rate limiter is in-memory and resets whenever the serverless function cold-starts. Fine for casual abuse at low traffic; swap for Vercel KV if you see real spam volume.
+
