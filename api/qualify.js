@@ -24,13 +24,13 @@ function validatePayload(body) {
     "Business insurance",
     "Financial planning",
     "Not sure yet",
-  ];
+    ];
   const allowedCoverage = ["Yes", "No", "Not sure"];
   const allowedUrgency = ["Right away", "In the next few weeks", "Just exploring options"];
 
-  if (!body.name || typeof body.name !== "string" || body.name.length > 100) {
-    errors.push("invalid name");
-  }
+if (!body.name || typeof body.name !== "string" || body.name.length > 100) {
+  errors.push("invalid name");
+}
   if (!body.contact || typeof body.contact !== "string" || body.contact.length > 150) {
     errors.push("invalid contact");
   }
@@ -41,7 +41,7 @@ function validatePayload(body) {
     errors.push("notes too long");
   }
 
-  return errors;
+return errors;
 }
 
 function buildFallbackSummary(lead) {
@@ -63,9 +63,9 @@ Urgency tags (choose exactly one): "hot", "warm", "cold"
 
 Respond ONLY with valid JSON matching this exact schema, nothing else:
 {
-  "summary": "string, 2-3 sentences, plain language",
-  "urgency": "hot" | "warm" | "cold",
-  "suggested_next_step": "string, one short sentence"
+"summary": "string, 2-3 sentences, plain language",
+"urgency": "hot" | "warm" | "cold",
+"suggested_next_step": "string, one short sentence"
 }
 
 Do not include any text outside the JSON object. Do not speculate about coverage details or give advice — only summarize what was stated.`;
@@ -79,44 +79,44 @@ async function callClaudeForSummary(lead) {
     notes: lead.notes || "",
   });
 
-  const controller = new AbortController();
+const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
 
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5",
-        max_tokens: 300,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userContent }],
-      }),
-      signal: controller.signal,
-    });
+try {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5",
+      max_tokens: 300,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userContent }],
+    }),
+    signal: controller.signal,
+  });
 
-    clearTimeout(timeout);
+  clearTimeout(timeout);
 
-    if (!response.ok) throw new Error(`Claude API error: ${response.status}`);
+  if (!response.ok) throw new Error(`Claude API error: ${response.status}`);
 
-    const data = await response.json();
-    const text = data.content?.find((b) => b.type === "text")?.text || "";
-    const parsed = JSON.parse(text);
+  const data = await response.json();
+  const text = data.content?.find((b) => b.type === "text")?.text || "";
+  const parsed = JSON.parse(text);
 
-    const allowedUrgency = ["hot", "warm", "cold"];
-    if (!allowedUrgency.includes(parsed.urgency)) parsed.urgency = "warm";
-    if (!parsed.summary || !parsed.suggested_next_step) throw new Error("incomplete response");
+  const allowedUrgency = ["hot", "warm", "cold"];
+  if (!allowedUrgency.includes(parsed.urgency)) parsed.urgency = "warm";
+  if (!parsed.summary || !parsed.suggested_next_step) throw new Error("incomplete response");
 
-    return parsed;
-  } catch (err) {
-    clearTimeout(timeout);
-    console.error("Claude summarization failed, using fallback:", err.message);
-    return buildFallbackSummary(lead);
-  }
+  return parsed;
+} catch (err) {
+  clearTimeout(timeout);
+  console.error("Claude summarization failed, using fallback:", err.message);
+  return buildFallbackSummary(lead);
+}
 }
 
 async function sendEmail(lead, aiResult) {
@@ -133,24 +133,26 @@ async function sendEmail(lead, aiResult) {
         subject: `[${aiResult.urgency.toUpperCase()}] New lead: ${lead.name} — ${lead.interest}`,
         text: `New lead from your website widget.
 
-Name: ${lead.name}
-Contact: ${lead.contact}
-Interest: ${lead.interest}
-Existing coverage: ${lead.existing_coverage}
-Timeline: ${lead.urgency_signal}
-Notes: ${lead.notes || "(none)"}
+        Name: ${lead.name}
+        Contact: ${lead.contact}
+        Interest: ${lead.interest}
+        Existing coverage: ${lead.existing_coverage}
+        Timeline: ${lead.urgency_signal}
+        Notes: ${lead.notes || "(none)"}
 
---- AI Summary ---
-${aiResult.summary}
+        --- AI Summary ---
+        ${aiResult.summary}
 
-Urgency: ${aiResult.urgency}
-Suggested next step: ${aiResult.suggested_next_step}
-`,
+        Urgency: ${aiResult.urgency}
+        Suggested next step: ${aiResult.suggested_next_step}
+        `,
       }),
     });
     if (!res.ok) throw new Error(`Email send failed: ${res.status}`);
+    return true;
   } catch (err) {
     console.error("EMAIL SEND FAILED — lead may be lost if not logged elsewhere:", err.message, lead);
+    return false;
   }
 }
 
@@ -159,22 +161,27 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
+const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
   if (isRateLimited(ip)) {
     return res.status(429).json({ error: "Too many requests" });
   }
 
-  const body = req.body;
+const body = req.body;
   const errors = validatePayload(body);
   if (errors.length > 0) {
     return res.status(400).json({ error: "Invalid input", details: errors });
   }
 
-  res.status(200).json({ status: "received" });
+// IMPORTANT: we must finish the Claude + email work BEFORE responding.
+// Vercel's Fluid compute runtime can freeze/suspend this function
+// immediately after the response is sent, which was silently aborting
+// the background fetch calls (and dropping leads without emailing them).
+// Awaiting fully before responding guarantees the email attempt completes.
+const aiResult = await callClaudeForSummary(body);
+  const emailSent = await sendEmail(body, aiResult);
 
-  const aiResult = await callClaudeForSummary(body);
-  await sendEmail(body, aiResult);
+return res.status(200).json({ status: "received", emailSent });
 }
