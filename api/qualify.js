@@ -1,10 +1,19 @@
 const YOUR_NOTIFICATION_EMAIL = "provident.fun@gmail.com";
+
+// Locked down: only these exact origins may call this API.
+// (Your real site can be reached at either the bare domain or www,
+// and lead-widget.vercel.app is kept so test.html keeps working.)
 const ALLOWED_ORIGINS = [
-  "https://providentfpsg.com",
-  "https://www.providentfpsg.com",
-  "https://ai.providentfpsg.com",
-  "https://lead-widget.vercel.app",
-];
+    "https://www.providentfpsg.com",
+    "https://providentfpsg.com",
+    "https://ai.providentfpsg.com",
+    "https://lead-widget.vercel.app",
+  ];
+
+function resolveAllowedOrigin(origin) {
+    return ALLOWED_ORIGINS.includes(origin) ? origin : null;
+}
+
 const RATE_LIMIT_PER_DAY = 20;
 
 const rateLimitStore = new Map();
@@ -75,7 +84,9 @@ Respond ONLY with valid JSON matching this exact schema, nothing else:
 
 Do not include any text outside the JSON object. Do not speculate about coverage details or give advice — only summarize what was stated.`;
 
-async function callClaudeForSummary(lead) {
+const GEMINI_MODEL = "gemini-3.5-flash";
+
+async function callGeminiForSummary(lead) {
   const userContent = JSON.stringify({
     name: lead.name,
     interest: lead.interest,
@@ -88,28 +99,32 @@ const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
 
 try {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5",
-      max_tokens: 300,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userContent }],
-    }),
-    signal: controller.signal,
-  });
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": process.env.GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ parts: [{ text: userContent }] }],
+        generationConfig: {
+          maxOutputTokens: 300,
+          responseMimeType: "application/json",
+        },
+      }),
+      signal: controller.signal,
+    }
+    );
 
   clearTimeout(timeout);
 
-  if (!response.ok) throw new Error(`Claude API error: ${response.status}`);
+  if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
 
   const data = await response.json();
-  const text = data.content?.find((b) => b.type === "text")?.text || "";
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
   const parsed = JSON.parse(text);
 
   const allowedUrgency = ["hot", "warm", "cold"];
@@ -119,7 +134,7 @@ try {
   return parsed;
 } catch (err) {
   clearTimeout(timeout);
-  console.error("Claude summarization failed, using fallback:", err.message);
+  console.error("Gemini summarization failed, using fallback:", err.message);
   return buildFallbackSummary(lead);
 }
 }
@@ -162,16 +177,16 @@ async function sendEmail(lead, aiResult) {
 }
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin;
-  const originAllowed = !origin || ALLOWED_ORIGINS.includes(origin);
-  if (origin && originAllowed) res.setHeader("Access-Control-Allow-Origin", origin);
-  res.setHeader("Vary", "Origin");
+  const allowedOrigin = resolveAllowedOrigin(req.headers.origin);
+  if (allowedOrigin) {
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+    res.setHeader("Vary", "Origin");
+  }
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
 if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  if (!originAllowed) return res.status(403).json({ error: "Origin not allowed" });
 
 const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
   if (isRateLimited(ip)) {
@@ -184,12 +199,12 @@ const body = req.body;
     return res.status(400).json({ error: "Invalid input", details: errors });
   }
 
-// IMPORTANT: we must finish the Claude + email work BEFORE responding.
+// IMPORTANT: we must finish the Gemini + email work BEFORE responding.
 // Vercel's Fluid compute runtime can freeze/suspend this function
 // immediately after the response is sent, which was silently aborting
 // the background fetch calls (and dropping leads without emailing them).
 // Awaiting fully before responding guarantees the email attempt completes.
-const aiResult = await callClaudeForSummary(body);
+const aiResult = await callGeminiForSummary(body);
   const emailSent = await sendEmail(body, aiResult);
 
 return res.status(200).json({ status: "received", emailSent });
