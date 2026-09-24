@@ -24,124 +24,130 @@ You are done qualifying them once you have name + a contact method + their inter
 Respond ONLY with a single JSON object, no other text, matching exactly this shape:
 {
   "reply": "string — what you say next to the visitor",
-  "done": boolean,
-  "lead": null or {
-    "name": "string or null",
-    "contact": "string or null (email or phone, as given)",
-    "interest": "string or null",
-    "existing_coverage": "string or null",
-    "urgency_signal": "string or null",
-    "notes": "string or null — anything else relevant they mentioned"
-},
-  "summary": "string or null — 2-3 plain-language sentences summarizing this lead for the agent who will follow up (only when done is true)",
-  "urgency": "hot" or "warm" or "cold" or null (only when done is true),
-  "suggested_next_step": "string or null — one short sentence (only when done is true)"
-}
+    "done": boolean,
+      "lead": null or {
+          "name": "string or null",
+              "contact": "string or null (email or phone, as given)",
+                  "interest": "string or null",
+                      "existing_coverage": "string or null",
+                          "urgency_signal": "string or null",
+                              "notes": "string or null — anything else relevant they mentioned"
+                                },
+                                  "summary": "string or null — 2-3 plain-language sentences summarizing this lead for the agent who will follow up (only when done is true)",
+                                    "urgency": "hot" or "warm" or "cold" or null (only when done is true),
+                                      "suggested_next_step": "string or null — one short sentence (only when done is true)"
+                                      }
 
-Set "lead", "summary", "urgency" and "suggested_next_step" to null while done is false.`;
+                                      Set "lead", "summary", "urgency" and "suggested_next_step" to null while done is false.`;
 
 function toGeminiContents(history) {
-  return history
-    .filter((m) => m && typeof m.text === "string" && (m.role === "user" || m.role === "model"))
-    .slice(-40)
-    .map((m) => ({ role: m.role, parts: [{ text: String(m.text).slice(0, 1000) }] }));
+    return history
+      .filter((m) => m && typeof m.text === "string" && (m.role === "user" || m.role === "model"))
+      .slice(-40)
+      .map((m) => ({ role: m.role, parts: [{ text: String(m.text).slice(0, 1000) }] }));
 }
 
 function fallbackResponse() {
-  return {
-    reply:
-      "Sorry, I'm having a little trouble on my end right now — could you leave your name and the best way to reach you (email or phone)? Someone from Provident Financial Planning will follow up personally.",
-    done: false,
-    emailSent: null,
-};
+    return {
+          reply:
+                  "Sorry, I'm having a little trouble on my end right now — could you leave your name and the best way to reach you (email or phone)? Someone from Provident Financial Planning will follow up personally.",
+          done: false,
+          emailSent: null,
+    };
 }
 
 export default async function handler(req, res) {
-  const allowedOrigin = applyCors(req, res);
+    const allowedOrigin = applyCors(req, res);
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  if (!allowedOrigin) return res.status(403).json({ error: "Origin not allowed" });
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+    if (!allowedOrigin) return res.status(403).json({ error: "Origin not allowed" });
 
   const ip = getClientIp(req);
-  if (isRateLimited(ip)) {
-    return res.status(429).json({ error: "Too many requests" });
-}
+    if (isRateLimited(ip)) {
+          return res.status(429).json({ error: "Too many requests" });
+    }
 
   const body = req.body || {};
-  const history = Array.isArray(body.history) ? body.history : [];
+    const history = Array.isArray(body.history) ? body.history : [];
 
   if (history.length === 0 || history.length > 60) {
-    return res.status(400).json({ error: "Invalid history" });
+        return res.status(400).json({ error: "Invalid history" });
   }
 
   const userTurnCount = history.filter((m) => m && m.role === "user").length;
-  const forceWrapUp = userTurnCount >= MAX_USER_TURNS;
+    const forceWrapUp = userTurnCount >= MAX_USER_TURNS;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 9000);
+    const timeout = setTimeout(() => controller.abort(), 9000);
 
   try {
-    const systemText = forceWrapUp
-      ? `${SYSTEM_PROMPT}\n\nIMPORTANT: This conversation has gone on long enough. In your reply now, wrap up warmly, thank them, and set "done": true with your best-effort lead fields even if some are incomplete.`
-            : SYSTEM_PROMPT;
+        const systemText = forceWrapUp
+          ? `${SYSTEM_PROMPT}\n\nIMPORTANT: This conversation has gone on long enough. In your reply now, wrap up warmly, thank them, and set "done": true with your best-effort lead fields even if some are incomplete.`
+                : SYSTEM_PROMPT;
 
-          const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-{
-        method: "POST",
+      const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+        {
+                  method: "POST",
                   headers: {
-          "Content-Type": "application/json",
-                      "x-goog-api-key": process.env.GEMINI_API_KEY,
-            },
-                    body: JSON.stringify({
-                                system_instruction: { parts: [{ text: systemText }] },
-                                contents: toGeminiContents(history),
-                                            generationConfig: {
-            maxOutputTokens: 400,
-                          // REST API field name is snake_case — see note in api/qualify.js history.
-                          response_mime_type: "application/json",
-              },
-}),
-        signal: controller.signal,
-          }
-              );
+                              "Content-Type": "application/json",
+                              "x-goog-api-key": process.env.GEMINI_API_KEY,
+                  },
+                  body: JSON.stringify({
+                              system_instruction: { parts: [{ text: systemText }] },
+                              contents: toGeminiContents(history),
+                              generationConfig: {
+                                            maxOutputTokens: 1024,
+                                            // REST API field name is snake_case — see note in api/qualify.js history.
+                                            response_mime_type: "application/json",
+                                            // Newer Gemini models default to "thinking" (internal reasoning
+                                            // tokens that count against maxOutputTokens). Left enabled, the
+                                            // model can burn the entire token budget on reasoning and emit
+                                            // nothing but a truncated "{" before hitting the limit. Disable
+                                            // it so the budget goes to the actual JSON reply.
+                                            thinkingConfig: { thinkingBudget: 0 },
+                              },
+                  }),
+                  signal: controller.signal,
+        }
+            );
 
-    clearTimeout(timeout);
+      clearTimeout(timeout);
 
-    if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
+      if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
 
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    const jsonStart = text.indexOf("{");
-    const jsonEnd = text.lastIndexOf("}");
-    if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
-      throw new Error(`No JSON object found in Gemini response: ${text.slice(0, 120)}`);
-    }
-    const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+      const jsonStart = text.indexOf("{");
+        const jsonEnd = text.lastIndexOf("}");
+        if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
+                throw new Error(`No JSON object found in Gemini response: ${text.slice(0, 120)}`);
+        }
+        const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
 
-    if (!parsed.reply || typeof parsed.reply !== "string") {
-      throw new Error("Missing reply field in Gemini response");
-    }
+      if (!parsed.reply || typeof parsed.reply !== "string") {
+              throw new Error("Missing reply field in Gemini response");
+      }
 
-    let emailSent = null;
-    if (parsed.done && parsed.lead) {
-      emailSent = await sendLeadEmail(parsed.lead, {
-                summary: parsed.summary,
-                urgency: parsed.urgency,
-                suggested_next_step: parsed.suggested_next_step,
-        });
-    }
+      let emailSent = null;
+        if (parsed.done && parsed.lead) {
+                emailSent = await sendLeadEmail(parsed.lead, {
+                          summary: parsed.summary,
+                          urgency: parsed.urgency,
+                          suggested_next_step: parsed.suggested_next_step,
+                });
+        }
 
-    return res.status(200).json({
-            reply: parsed.reply,
-            done: !!parsed.done,
-            emailSent,
+      return res.status(200).json({
+              reply: parsed.reply,
+              done: !!parsed.done,
+              emailSent,
       });
   } catch (err) {
-    clearTimeout(timeout);
-    console.error("Chat turn failed, using fallback reply:", err.message);
-    return res.status(200).json(fallbackResponse());
+        clearTimeout(timeout);
+        console.error("Chat turn failed, using fallback reply:", err.message);
+        return res.status(200).json(fallbackResponse());
   }
-  }
+}
