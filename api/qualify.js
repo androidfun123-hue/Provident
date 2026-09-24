@@ -1,5 +1,10 @@
 const YOUR_NOTIFICATION_EMAIL = "provident.fun@gmail.com";
-const ALLOWED_ORIGIN = "*";
+const ALLOWED_ORIGINS = [
+  "https://providentfpsg.com",
+  "https://www.providentfpsg.com",
+  "https://ai.providentfpsg.com",
+  "https://lead-widget.vercel.app",
+];
 const RATE_LIMIT_PER_DAY = 20;
 
 const rateLimitStore = new Map();
@@ -157,12 +162,16 @@ async function sendEmail(lead, aiResult) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  const originAllowed = !origin || ALLOWED_ORIGINS.includes(origin);
+  if (origin && originAllowed) res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
 if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (!originAllowed) return res.status(403).json({ error: "Origin not allowed" });
 
 const ip = req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
   if (isRateLimited(ip)) {
