@@ -1,51 +1,31 @@
+/**
+ * Provident Financial Planning — AI Lead Qualification Widget
+ * Drop-in script: <script src="https://ai.providentfpsg.com/widget.js" defer></script>
+ *
+ * No dependencies. Vanilla JS. Renders a fixed chat bubble that opens a
+ * live AI-driven conversation (powered by Gemini via /api/chat), which
+ * probes for lead details the way a real agent would, then emails the
+ * qualified lead once the conversation wraps up.
+ */
+
 (function () {
-    "use strict";
+      "use strict";
 
-   const API_ENDPOINT = "https://lead-widget.vercel.app/api/qualify";
+   // ---- CONFIG: change this to your deployed API URL ----
+   const API_ENDPOINT = "https://ai.providentfpsg.com/api/chat";
 
-   const STEPS = [
-     {
-             id: "name",
-             question: "Hi! I'm the Provident Financial Planning assistant. What's your name?",
-             input: "text",
-             placeholder: "Your name",
-     },
-     {
-             id: "contact",
-             question: "Thanks {name}! What's the best email or phone number to reach you?",
-             input: "text",
-             placeholder: "Email or phone",
-     },
-     {
-             id: "interest",
-             question: "What are you looking for help with?",
-             options: ["Life insurance", "Health insurance", "Business insurance", "Financial planning", "Not sure yet"],
-     },
-     {
-             id: "existing_coverage",
-             question: "Do you currently have coverage in this area?",
-             options: ["Yes", "No", "Not sure"],
-     },
-     {
-             id: "urgency_signal",
-             question: "How soon are you looking to sort this out?",
-             options: ["Right away", "In the next few weeks", "Just exploring options"],
-     },
-     {
-             id: "notes",
-             question: "Anything else you'd like to share? (optional)",
-             input: "text",
-             placeholder: "Optional — press Send or skip",
-             optional: true,
-     },
-       ];
+   const GREETING =
+           "Hey there! 👋 I'm here for Provident Financial Planning — mind if I ask a couple quick questions to see how we can help?";
 
-   const CLOSING_MESSAGE =
-         "Thanks {name} — got it! Someone from Provident Financial Planning will reach out within 24 hours. Have a great day!";
+   const ERROR_REPLY =
+           "Sorry, something went wrong on my end. Could you leave your name and the best way to reach you (email or phone)? Someone from Provident Financial Planning will follow up personally.";
 
-   let currentStepIndex = 0;
-    let answers = {};
+   // ---- State ----
+   let history = [];
+      let conversationDone = false;
+      let awaitingReply = false;
 
+   // ---- Styles (scoped, injected once) ----
    const css = `
        #pfp-widget-bubble {
              position: fixed; bottom: 20px; right: 20px; z-index: 999999;
@@ -84,167 +64,196 @@
                                                                                                                                                                                          border-radius: 10px; margin-bottom: 12px; margin-left: auto;
                                                                                                                                                                                                max-width: 80%; text-align: right; line-height: 1.4;
                                                                                                                                                                                                    }
-                                                                                                                                                                                                       #pfp-widget-input-area {
-                                                                                                                                                                                                             border-top: 1px solid #e6e6e6; padding: 10px; display: flex; gap: 8px;
-                                                                                                                                                                                                                 }
-                                                                                                                                                                                                                     #pfp-widget-input-area input[type=text] {
-                                                                                                                                                                                                                           flex: 1; border: 1px solid #ccc; border-radius: 8px;
-                                                                                                                                                                                                                                 padding: 10px; font-size: 16px; outline: none;
+                                                                                                                                                                                                       .pfp-msg-typing {
+                                                                                                                                                                                                             background: #f0f3f7; padding: 10px 12px; border-radius: 10px;
+                                                                                                                                                                                                                   margin-bottom: 12px; max-width: 90%; color: #888; font-style: italic;
+                                                                                                                                                                                                                       }
+                                                                                                                                                                                                                           #pfp-widget-input-area {
+                                                                                                                                                                                                                                 border-top: 1px solid #e6e6e6; padding: 10px; display: flex; gap: 8px;
                                                                                                                                                                                                                                      }
-                                                                                                                                                                                                                                         #pfp-widget-input-area button {
-                                                                                                                                                                                                                                               background: #1a3a5c; color: white; border: none; border-radius: 8px;
-                                                                                                                                                                                                                                                     padding: 0 16px; font-size: 14px; cursor: pointer;
+                                                                                                                                                                                                                                         #pfp-widget-input-area input[type=text] {
+                                                                                                                                                                                                                                               flex: 1; border: 1px solid #ccc; border-radius: 8px;
+                                                                                                                                                                                                                                                     padding: 10px; font-size: 16px; outline: none;
                                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                                             .pfp-option-btn {
-                                                                                                                                                                                                                                                                   display: block; width: 100%; text-align: left;
-                                                                                                                                                                                                                                                                         background: white; border: 1px solid #1a3a5c; color: #1a3a5c;
-                                                                                                                                                                                                                                                                               border-radius: 8px; padding: 9px 12px; margin-bottom: 8px;
-                                                                                                                                                                                                                                                                                     font-size: 14px; cursor: pointer;
-                                                                                                                                                                                                                                                                                         }
-                                                                                                                                                                                                                                                                                             .pfp-option-btn:hover { background: #eef3f8; }
-                                                                                                                                                                                                                                                                                               `;
+                                                                                                                                                                                                                                                             #pfp-widget-input-area input[type=text]:disabled {
+                                                                                                                                                                                                                                                                   background: #f5f5f5; color: #999;
+                                                                                                                                                                                                                                                                       }
+                                                                                                                                                                                                                                                                           #pfp-widget-input-area button {
+                                                                                                                                                                                                                                                                                 background: #1a3a5c; color: white; border: none; border-radius: 8px;
+                                                                                                                                                                                                                                                                                       padding: 0 16px; font-size: 14px; cursor: pointer;
+                                                                                                                                                                                                                                                                                           }
+                                                                                                                                                                                                                                                                                               #pfp-widget-input-area button:disabled {
+                                                                                                                                                                                                                                                                                                     background: #9aa8b5; cursor: default;
+                                                                                                                                                                                                                                                                                                         }
+                                                                                                                                                                                                                                                                                                           `;
 
    function injectStyles() {
-         const style = document.createElement("style");
-         style.textContent = css;
-         document.head.appendChild(style);
-   }
-
-   function fillTemplate(str) {
-         return str.replace(/\{(\w+)\}/g, (_, key) => answers[key] || "");
+           const style = document.createElement("style");
+           style.textContent = css;
+           document.head.appendChild(style);
    }
 
    function appendBotMessage(text) {
-         const body = document.getElementById("pfp-widget-body");
-         const div = document.createElement("div");
-         div.className = "pfp-msg-bot";
-         div.textContent = fillTemplate(text);
-         body.appendChild(div);
-         body.scrollTop = body.scrollHeight;
+           const body = document.getElementById("pfp-widget-body");
+           const div = document.createElement("div");
+           div.className = "pfp-msg-bot";
+           div.textContent = text;
+           body.appendChild(div);
+           body.scrollTop = body.scrollHeight;
    }
 
    function appendUserMessage(text) {
-         const body = document.getElementById("pfp-widget-body");
-         const div = document.createElement("div");
-         div.className = "pfp-msg-user";
-         div.textContent = text;
-         body.appendChild(div);
-         body.scrollTop = body.scrollHeight;
+           const body = document.getElementById("pfp-widget-body");
+           const div = document.createElement("div");
+           div.className = "pfp-msg-user";
+           div.textContent = text;
+           body.appendChild(div);
+           body.scrollTop = body.scrollHeight;
    }
 
-   function renderInputArea(step) {
-         const inputArea = document.getElementById("pfp-widget-input-area");
-         inputArea.innerHTML = "";
-
-      if (step.options) {
-              const body = document.getElementById("pfp-widget-body");
-              const wrap = document.createElement("div");
-              step.options.forEach((opt) => {
-                        const btn = document.createElement("button");
-                        btn.className = "pfp-option-btn";
-                        btn.textContent = opt;
-                        btn.onclick = () => handleAnswer(step, opt);
-                        wrap.appendChild(btn);
-              });
-              body.appendChild(wrap);
-              body.scrollTop = body.scrollHeight;
-              inputArea.style.display = "none";
-      } else {
-              inputArea.style.display = "flex";
-              const input = document.createElement("input");
-              input.type = "text";
-              input.placeholder = step.placeholder || "";
-              input.maxLength = 200;
-              const sendBtn = document.createElement("button");
-              sendBtn.textContent = step.optional ? "Send / Skip" : "Send";
-
-           const submit = () => {
-                     const val = input.value.trim();
-                     if (!val && !step.optional) return;
-                     handleAnswer(step, val || "(skipped)");
-           };
-
-           sendBtn.onclick = submit;
-              input.addEventListener("keydown", (e) => {
-                        if (e.key === "Enter") submit();
-              });
-
-           inputArea.appendChild(input);
-              inputArea.appendChild(sendBtn);
-              input.focus();
-      }
+   function showTyping() {
+           const body = document.getElementById("pfp-widget-body");
+           const div = document.createElement("div");
+           div.className = "pfp-msg-typing";
+           div.id = "pfp-typing-indicator";
+           div.textContent = "Typing…";
+           body.appendChild(div);
+           body.scrollTop = body.scrollHeight;
    }
 
-   function handleAnswer(step, value) {
-         answers[step.id] = value;
-         appendUserMessage(value);
-         currentStepIndex++;
-         advance();
+   function hideTyping() {
+           const el = document.getElementById("pfp-typing-indicator");
+           if (el) el.remove();
    }
 
-   function advance() {
-         if (currentStepIndex >= STEPS.length) {
-                 appendBotMessage(CLOSING_MESSAGE);
-                 document.getElementById("pfp-widget-input-area").style.display = "none";
-                 submitLead();
-                 return;
-         }
-         const step = STEPS[currentStepIndex];
-         appendBotMessage(step.question);
-         renderInputArea(step);
+   function setInputEnabled(enabled) {
+           const input = document.getElementById("pfp-widget-text-input");
+           const button = document.getElementById("pfp-widget-send-btn");
+           if (input) {
+                     input.disabled = !enabled;
+                     if (enabled) input.focus();
+           }
+           if (button) button.disabled = !enabled;
    }
 
-   function submitLead() {
-         fetch(API_ENDPOINT, {
-                 method: "POST",
-                 headers: { "Content-Type": "application/json" },
-                 body: JSON.stringify(answers),
-         }).catch(() => {
-         });
+   function endConversationUI() {
+           conversationDone = true;
+           setInputEnabled(false);
+           const input = document.getElementById("pfp-widget-text-input");
+           if (input) input.placeholder = "Conversation ended — thanks for chatting!";
+   }
+
+   async function sendMessage(userText) {
+           history.push({ role: "user", text: userText });
+           appendUserMessage(userText);
+
+        awaitingReply = true;
+           setInputEnabled(false);
+           showTyping();
+
+        let data;
+           try {
+                     const res = await fetch(API_ENDPOINT, {
+                                 method: "POST",
+                                 headers: { "Content-Type": "application/json" },
+                                 body: JSON.stringify({ history }),
+                     });
+                     data = await res.json();
+                     if (!data || typeof data.reply !== "string") throw new Error("bad response");
+           } catch (err) {
+                     data = { reply: ERROR_REPLY, done: false };
+           }
+
+        hideTyping();
+           awaitingReply = false;
+
+        history.push({ role: "model", text: data.reply });
+           appendBotMessage(data.reply);
+
+        if (data.done) {
+                  endConversationUI();
+        } else {
+                  setInputEnabled(true);
+        }
+   }
+
+   function handleSubmit() {
+           if (awaitingReply || conversationDone) return;
+           const input = document.getElementById("pfp-widget-text-input");
+           const val = input.value.trim();
+           if (!val) return;
+           input.value = "";
+           sendMessage(val);
+   }
+
+   function renderInputArea() {
+           const inputArea = document.getElementById("pfp-widget-input-area");
+           inputArea.innerHTML = "";
+
+        const input = document.createElement("input");
+           input.type = "text";
+           input.id = "pfp-widget-text-input";
+           input.placeholder = "Type your reply…";
+           input.maxLength = 300;
+
+        const sendBtn = document.createElement("button");
+           sendBtn.id = "pfp-widget-send-btn";
+           sendBtn.textContent = "Send";
+
+        sendBtn.onclick = handleSubmit;
+           input.addEventListener("keydown", (e) => {
+                     if (e.key === "Enter") handleSubmit();
+           });
+
+        inputArea.appendChild(input);
+           inputArea.appendChild(sendBtn);
    }
 
    function openWidget() {
-         document.getElementById("pfp-widget-panel").classList.add("open");
-         if (currentStepIndex === 0 && Object.keys(answers).length === 0) {
-                 advance();
-         }
+           document.getElementById("pfp-widget-panel").classList.add("open");
+           if (history.length === 0) {
+                     history.push({ role: "model", text: GREETING });
+                     appendBotMessage(GREETING);
+                     setInputEnabled(true);
+           }
    }
 
    function closeWidget() {
-         document.getElementById("pfp-widget-panel").classList.remove("open");
+           document.getElementById("pfp-widget-panel").classList.remove("open");
    }
 
    function buildDOM() {
-         const bubble = document.createElement("div");
-         bubble.id = "pfp-widget-bubble";
-         bubble.innerHTML = "💬";
-         bubble.onclick = openWidget;
+           const bubble = document.createElement("div");
+           bubble.id = "pfp-widget-bubble";
+           bubble.innerHTML = "💬";
+           bubble.onclick = openWidget;
 
-      const panel = document.createElement("div");
-         panel.id = "pfp-widget-panel";
-         panel.innerHTML = `
-               <div id="pfp-widget-header">
-                       <span>Provident Financial Planning</span>
-                               <span id="pfp-widget-close">&times;</span>
-                                     </div>
-                                           <div id="pfp-widget-body"></div>
-                                                 <div id="pfp-widget-input-area"></div>
-                                                     `;
+        const panel = document.createElement("div");
+           panel.id = "pfp-widget-panel";
+           panel.innerHTML = `
+                 <div id="pfp-widget-header">
+                         <span>Provident Financial Planning</span>
+                                 <span id="pfp-widget-close">&times;</span>
+                                       </div>
+                                             <div id="pfp-widget-body"></div>
+                                                   <div id="pfp-widget-input-area"></div>
+                                                       `;
 
-      document.body.appendChild(bubble);
-         document.body.appendChild(panel);
+        document.body.appendChild(bubble);
+           document.body.appendChild(panel);
 
-      document.getElementById("pfp-widget-close").onclick = closeWidget;
+        document.getElementById("pfp-widget-close").onclick = closeWidget;
+           renderInputArea();
    }
 
    function init() {
-         injectStyles();
-         buildDOM();
+           injectStyles();
+           buildDOM();
    }
 
    if (document.readyState === "loading") {
-         document.addEventListener("DOMContentLoaded", init);
+           document.addEventListener("DOMContentLoaded", init);
    } else {
-         init();
+           init();
    }
 })();
