@@ -86,6 +86,46 @@ Respond ONLY with valid JSON matching this exact schema, nothing else:
 
 const GEMINI_MODEL = "gemini-3.5-flash";
 
+// Extracts the first complete top-level JSON object from a string, tolerant
+// of a stray preamble before it or trailing content after it (Gemini
+// sometimes adds either even with JSON mode requested). Brace-counting
+// (aware of string literals) finds the true matching closing brace, unlike
+// a naive lastIndexOf("}") which can grab a later, unrelated brace and
+// leave JSON.parse choking on trailing garbage.
+function extractJsonObject(text) {
+        	const start = text.indexOf("{");
+        	if (start === -1) {
+                        		throw new Error(`No JSON object found in Gemini response: ${text.slice(0, 120)}`);
+                }
+        	let depth = 0;
+        	let inString = false;
+        	let escapeNext = false;
+        	for (let i = start; i < text.length; i++) {
+                        		const ch = text[i];
+                        		if (inString) {
+                                                			if (escapeNext) {
+                                                                                				escapeNext = false;
+                                                                        } else if (ch === "\\") {
+                                                                                				escapeNext = true;
+                                                                        } else if (ch === '"') {
+                                                                                				inString = false;
+                                                                        }
+                                                			continue;
+                                        }
+                        		if (ch === '"') {
+                                                			inString = true;
+                                        } else if (ch === "{") {
+                                                			depth++;
+                                        } else if (ch === "}") {
+                                                			depth--;
+                                                			if (depth === 0) {
+                                                                                				return text.slice(start, i + 1);
+                                                                        }
+                                        }
+                }
+        	throw new Error(`Unterminated JSON object in Gemini response: ${text.slice(0, 120)}`);
+}
+
 async function callGeminiForSummary(lead) {
         const userContent = JSON.stringify({
                   name: lead.name,
@@ -139,12 +179,7 @@ async function callGeminiForSummary(lead) {
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
             // Defensive extraction: even with JSON mode requested, be tolerant of
           // a stray preamble or markdown code fence around the JSON object.
-          const jsonStart = text.indexOf("{");
-            const jsonEnd = text.lastIndexOf("}");
-            if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
-                        throw new Error(`No JSON object found in Gemini response: ${text.slice(0, 120)}`);
-            }
-            const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+          		const parsed = JSON.parse(extractJsonObject(text));
 
           const allowedUrgency = ["hot", "warm", "cold"];
             if (!allowedUrgency.includes(parsed.urgency)) parsed.urgency = "warm";
