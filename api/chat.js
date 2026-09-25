@@ -2,7 +2,7 @@ import { applyCors, getClientIp, createRateLimiter, sendLeadEmail } from "./_lib
 
 const RATE_LIMIT_PER_DAY = 60;
 const MAX_USER_TURNS = 14;
-const GEMINI_MODEL = "gemini-3.5-flash";
+const DEEPSEEK_MODEL = "deepseek-flash";
 
 const isRateLimited = createRateLimiter(RATE_LIMIT_PER_DAY);
 
@@ -51,23 +51,29 @@ Respond ONLY with a single JSON object, no other text, matching exactly this sha
 
                                           Set "lead", "summary", "urgency" and "suggested_next_step" to null while done is false.`;
 
-function toGeminiContents(history) {
+// DeepSeek's chat completions API is OpenAI-style: messages use
+// role "user"/"assistant" (not Gemini's "model"), and content is a plain
+// string (not Gemini's parts array).
+function toDeepseekMessages(history) {
     return history
       .filter((m) => m && typeof m.text === "string" && (m.role === "user" || m.role === "model"))
       .slice(-40)
-      .map((m) => ({ role: m.role, parts: [{ text: String(m.text).slice(0, 1000) }] }));
+      .map((m) => ({
+              role: m.role === "model" ? "assistant" : "user",
+              content: String(m.text).slice(0, 1000),
+      }));
 }
 
 // Extracts the first complete top-level JSON object from a string, tolerant
-// of a stray preamble before it or trailing content after it (Gemini
-// sometimes adds either even with JSON mode requested). Brace-counting
-// (aware of string literals) finds the true matching closing brace, unlike
-// a naive lastIndexOf("}") which can grab a later, unrelated brace and
-// leave JSON.parse choking on trailing garbage.
+// of a stray preamble before it or trailing content after it (some models
+// add either even with JSON mode requested). Brace-counting (aware of
+// string literals) finds the true matching closing brace, unlike a naive
+// lastIndexOf("}") which can grab a later, unrelated brace and leave
+// JSON.parse choking on trailing garbage.
 function extractJsonObject(text) {
     const start = text.indexOf("{");
     if (start === -1) {
-          throw new Error(`No JSON object found in Gemini response: ${text.slice(0, 120)}`);
+          throw new Error(`No JSON object found in model response: ${text.slice(0, 120)}`);
     }
     let depth = 0;
     let inString = false;
@@ -95,7 +101,7 @@ function extractJsonObject(text) {
                   }
           }
     }
-    throw new Error(`Unterminated JSON object in Gemini response: ${text.slice(0, 120)}`);
+    throw new Error(`Unterminated JSON object in model response: ${text.slice(0, 120)}`);
 }
 
 function fallbackResponse() {
@@ -111,52 +117,46 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// One attempt at calling Gemini and parsing its reply. Throws on any failure
-// (network error, non-2xx, malformed/missing JSON) so the caller can retry.
-async function callGemini(systemText, history, timeoutMs) {
+// One attempt at calling DeepSeek and parsing its reply. Throws on any
+// failure (network error, non-2xx, malformed/missing JSON) so the caller
+// can retry.
+async function callDeepseek(systemText, history, timeoutMs) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-        const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-          {
-                    method: "POST",
-                    headers: {
-                                "Content-Type": "application/json",
-                                "x-goog-api-key": process.env.GEMINI_API_KEY,
-                    },
-                    body: JSON.stringify({
-                                system_instruction: { parts: [{ text: systemText }] },
-                                contents: toGeminiContents(history),
-                                generationConfig: {
-                                              maxOutputTokens: 1024,
-                                              // REST API field name is snake_case — see note in api/qualify.js history.
-                                              response_mime_type: "application/json",
-                                              // Newer Gemini models default to "thinking" (internal reasoning
-                                              // tokens that count against maxOutputTokens). Left enabled, the
-                                              // model can burn the entire token budget on reasoning and emit
-                                              // nothing but a truncated "{" before hitting the limit. Disable
-                                              // it so the budget goes to the actual JSON reply.
-                                              thinkingConfig: { thinkingBudget: 0 },
-                                },
-                    }),
-                    signal: controller.signal,
-          }
-              );
+        const response = await fetch("https://api.deepseek.com/chat/completions", {
+              method: "POST",
+              headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+              },
+              body: JSON.stringify({
+                          model: DEEPSEEK_MODEL,
+                          messages: [{ role: "system", content: systemText }, ...toDeepseekMessages(history)],
+                          response_format: { type: "json_object" },
+                          max_tokens: 1024,
+                          // Thinking mode is on by default and can burn the whole token
+                          // budget on internal reasoning, leaving nothing for the actual
+                          // JSON reply (same failure mode Gemini has with its "thinking"
+                          // feature). Disable it so the budget goes to the reply itself.
+                          thinking: { type: "disabled" },
+              }),
+              signal: controller.signal,
+        });
 
       if (!response.ok) {
               const bodyText = await response.text().catch(() => "");
-              throw new Error(`Gemini API error: ${response.status} ${bodyText.slice(0, 200)}`);
+              throw new Error(`DeepSeek API error: ${response.status} ${bodyText.slice(0, 200)}`);
       }
 
       const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        const text = data.choices?.[0]?.message?.content || "";
 
       const parsed = JSON.parse(extractJsonObject(text));
 
       if (!parsed.reply || typeof parsed.reply !== "string") {
-              throw new Error("Missing reply field in Gemini response");
+              throw new Error("Missing reply field in DeepSeek response");
       }
 
       return parsed;
@@ -191,11 +191,11 @@ export default async function handler(req, res) {
         ? `${SYSTEM_PROMPT}\n\nIMPORTANT: This conversation has gone on long enough. In your reply now, wrap up warmly, thank them, and set "done": true with your best-effort lead fields even if some are incomplete.`
       : SYSTEM_PROMPT;
 
-  // The free-tier Gemini API occasionally has transient hiccups (brief
-  // overload, rate-limit blips). Retry once with a short backoff before
-  // giving up, so a single flaky call doesn't dump a real visitor into the
-  // fallback reply. Each attempt gets its own timeout budget so two
-  // attempts plus backoff comfortably fit inside the function's maxDuration.
+  // APIs occasionally have transient hiccups (brief overload, rate-limit
+  // blips). Retry once with a short backoff before giving up, so a single
+  // flaky call doesn't dump a real visitor into the fallback reply. Each
+  // attempt gets its own timeout budget so two attempts plus backoff
+  // comfortably fit inside the function's maxDuration.
   const MAX_ATTEMPTS = 2;
     const ATTEMPT_TIMEOUT_MS = 7000;
     const RETRY_BACKOFF_MS = 400;
@@ -205,7 +205,7 @@ export default async function handler(req, res) {
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-                parsed = await callGemini(systemText, history, ATTEMPT_TIMEOUT_MS);
+                parsed = await callDeepseek(systemText, history, ATTEMPT_TIMEOUT_MS);
                 break;
         } catch (err) {
                 lastErr = err;
@@ -235,8 +235,9 @@ export default async function handler(req, res) {
               emailSent,
       });
   } catch (err) {
-        // Gemini succeeded; only the (non-critical) email send failed. Still
-        // deliver the reply to the visitor rather than falling back.
+        // The model call succeeded; only the (non-critical) email send
+        // failed. Still deliver the reply to the visitor rather than
+        // falling back.
         console.error("Lead email failed to send:", err.message);
         return res.status(200).json({
               reply: parsed.reply,
