@@ -49,7 +49,10 @@ Respond ONLY with a single JSON object, no other text, matching exactly this sha
                                           "suggested_next_step": "string or null — one short sentence (only when done is true)"
                                           }
 
-                                          Set "lead", "summary", "urgency" and "suggested_next_step" to null while done is false.`;
+                                          Set "lead", "summary", "urgency" and "suggested_next_step" to null while done is false.
+
+Example of the exact shape (illustrative only — never reuse these words, always write your own reply for the real conversation):
+{"reply": "Got it, a small business — what are you mainly looking to protect: your premises, stock, vehicles, or something else?", "done": false, "lead": null, "summary": null, "urgency": null, "suggested_next_step": null}`;
 
 // DeepSeek's chat completions API is OpenAI-style: messages use
 // role "user"/"assistant" (not Gemini's "model"), and content is a plain
@@ -119,8 +122,13 @@ function sleep(ms) {
 
 // One attempt at calling DeepSeek and parsing its reply. Throws on any
 // failure (network error, non-2xx, malformed/missing JSON) so the caller
-// can retry.
-async function callDeepseek(systemText, history, timeoutMs) {
+// can retry. When jsonMode is false, response_format is omitted — DeepSeek's
+// own docs warn their JSON mode "may occasionally return empty content", and
+// omitting it on a later retry gives a differently-shaped request a chance to
+// dodge that same bug. extractJsonObject() below is tolerant of any stray
+// text around the JSON either way, so this still works because the system
+// prompt itself instructs a JSON-only reply.
+async function callDeepseek(systemText, history, timeoutMs, jsonMode = true) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -134,8 +142,8 @@ async function callDeepseek(systemText, history, timeoutMs) {
               body: JSON.stringify({
                           model: DEEPSEEK_MODEL,
                           messages: [{ role: "system", content: systemText }, ...toDeepseekMessages(history)],
-                          response_format: { type: "json_object" },
-                          max_tokens: 1024,
+                          ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+                          max_tokens: 2048,
                           // Thinking mode is on by default and can burn the whole token
                           // budget on internal reasoning, leaving nothing for the actual
                           // JSON reply (same failure mode Gemini has with its "thinking"
@@ -192,11 +200,16 @@ export default async function handler(req, res) {
       : SYSTEM_PROMPT;
 
   // APIs occasionally have transient hiccups (brief overload, rate-limit
-  // blips). DeepSeek specifically has a documented quirk where its JSON
-  // mode can return genuinely empty content, and this has been observed
-  // happening twice in a row for the same request. Retry up to 2 times
+  // blips). DeepSeek's own docs warn that its JSON mode "may occasionally
+  // return empty content" — and in production this has been observed
+  // failing multiple attempts in a row for the same request, more often
+  // than a truly rare edge case would suggest. Retry up to 2 times
   // (3 attempts total) with a short backoff before giving up, so a real
-  // visitor isn't dumped into the fallback reply by a short unlucky streak.
+  // visitor isn't dumped into the fallback reply by an unlucky streak.
+  // The final attempt drops response_format (jsonMode: false) so it isn't
+  // the exact same request shape that just failed twice — the system
+  // prompt alone still instructs a JSON-only reply, and extractJsonObject
+  // tolerates any stray text around it.
   // Each attempt gets its own timeout budget so three attempts plus backoff
   // comfortably fit inside the function's maxDuration (see vercel.json).
   const MAX_ATTEMPTS = 3;
@@ -208,7 +221,8 @@ export default async function handler(req, res) {
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-                parsed = await callDeepseek(systemText, history, ATTEMPT_TIMEOUT_MS);
+                const jsonMode = attempt < MAX_ATTEMPTS;
+                parsed = await callDeepseek(systemText, history, ATTEMPT_TIMEOUT_MS, jsonMode);
                 break;
         } catch (err) {
                 lastErr = err;
