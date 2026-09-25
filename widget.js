@@ -17,8 +17,8 @@
    // ---- CONFIG: change this to your deployed API URL ----
    const API_ENDPOINT = "https://ai.providentfpsg.com/api/chat";
 
-   const GREETING =
-             "Hey there! 👋 I'm here for Provident Financial Planning — mind if I ask a couple quick questions to see how we can help?";
+   	const GREETING =
+                		"Hey there! 👋 I'm here for Provident Financial Planning — are you looking into insurance for your business or property (general insurance), or for yourself and your family (life & personal insurance)?";
 
    const ERROR_REPLY =
              "Sorry, something went wrong on my end. Could you leave your name and the best way to reach you (email or phone)? Someone from Provident Financial Planning will follow up personally.";
