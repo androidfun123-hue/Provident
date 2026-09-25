@@ -1,1 +1,1 @@
-{"functions": {"api/qualify.js": {"maxDuration": 15}}}
+{"functions": {"api/qualify.js": {"maxDuration": 15}, "api/chat.js": {"maxDuration": 20}}}
