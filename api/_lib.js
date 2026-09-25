@@ -56,12 +56,11 @@ export async function sendLeadEmail(lead, aiSummary) {
                   body: JSON.stringify({
                             from: "Lead Widget <onboarding@resend.dev>",
                             to: YOUR_NOTIFICATION_EMAIL,
-                            subject: `[${(aiSummary.urgency || "warm").toUpperCase()}] New lead: ${
-                                        lead.name || "Unknown"
-                            } — ${lead.interest || "General enquiry"}`,
-                            text: `New lead from your website chat widget.
+        subject: `[${(aiSummary.urgency || "warm").toUpperCase()}] New ${lead.insurance_type ? lead.insurance_type + " " : ""}lead: ${lead.name || "Unknown"} — ${lead.interest || "General enquiry"}`,
+                              text: `New lead from your website chat widget.
 
-                            Name: ${lead.name || "(not given)"}
+                        Insurance type: ${lead.insurance_type || "(not specified)"}
+                        Name: ${lead.name || "(not given)"}
                             Contact: ${lead.contact || "(not given)"}
                             Interest: ${lead.interest || "(not specified)"}
                             Existing coverage: ${lead.existing_coverage || "(not specified)"}
