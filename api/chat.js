@@ -192,12 +192,15 @@ export default async function handler(req, res) {
       : SYSTEM_PROMPT;
 
   // APIs occasionally have transient hiccups (brief overload, rate-limit
-  // blips). Retry once with a short backoff before giving up, so a single
-  // flaky call doesn't dump a real visitor into the fallback reply. Each
-  // attempt gets its own timeout budget so two attempts plus backoff
-  // comfortably fit inside the function's maxDuration.
-  const MAX_ATTEMPTS = 2;
-    const ATTEMPT_TIMEOUT_MS = 7000;
+  // blips). DeepSeek specifically has a documented quirk where its JSON
+  // mode can return genuinely empty content, and this has been observed
+  // happening twice in a row for the same request. Retry up to 2 times
+  // (3 attempts total) with a short backoff before giving up, so a real
+  // visitor isn't dumped into the fallback reply by a short unlucky streak.
+  // Each attempt gets its own timeout budget so three attempts plus backoff
+  // comfortably fit inside the function's maxDuration (see vercel.json).
+  const MAX_ATTEMPTS = 3;
+    const ATTEMPT_TIMEOUT_MS = 6000;
     const RETRY_BACKOFF_MS = 400;
 
   let parsed = null;
