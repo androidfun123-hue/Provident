@@ -107,6 +107,64 @@ function fallbackResponse() {
     };
 }
 
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// One attempt at calling Gemini and parsing its reply. Throws on any failure
+// (network error, non-2xx, malformed/missing JSON) so the caller can retry.
+async function callGemini(systemText, history, timeoutMs) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+        const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+          {
+                    method: "POST",
+                    headers: {
+                                "Content-Type": "application/json",
+                                "x-goog-api-key": process.env.GEMINI_API_KEY,
+                    },
+                    body: JSON.stringify({
+                                system_instruction: { parts: [{ text: systemText }] },
+                                contents: toGeminiContents(history),
+                                generationConfig: {
+                                              maxOutputTokens: 1024,
+                                              // REST API field name is snake_case — see note in api/qualify.js history.
+                                              response_mime_type: "application/json",
+                                              // Newer Gemini models default to "thinking" (internal reasoning
+                                              // tokens that count against maxOutputTokens). Left enabled, the
+                                              // model can burn the entire token budget on reasoning and emit
+                                              // nothing but a truncated "{" before hitting the limit. Disable
+                                              // it so the budget goes to the actual JSON reply.
+                                              thinkingConfig: { thinkingBudget: 0 },
+                                },
+                    }),
+                    signal: controller.signal,
+          }
+              );
+
+      if (!response.ok) {
+              const bodyText = await response.text().catch(() => "");
+              throw new Error(`Gemini API error: ${response.status} ${bodyText.slice(0, 200)}`);
+      }
+
+      const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+      const parsed = JSON.parse(extractJsonObject(text));
+
+      if (!parsed.reply || typeof parsed.reply !== "string") {
+              throw new Error("Missing reply field in Gemini response");
+      }
+
+      return parsed;
+  } finally {
+        clearTimeout(timeout);
+  }
+}
+
 export default async function handler(req, res) {
     const allowedOrigin = applyCors(req, res);
 
@@ -129,55 +187,40 @@ export default async function handler(req, res) {
   const userTurnCount = history.filter((m) => m && m.role === "user").length;
     const forceWrapUp = userTurnCount >= MAX_USER_TURNS;
 
-  const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 9000);
+  const systemText = forceWrapUp
+        ? `${SYSTEM_PROMPT}\n\nIMPORTANT: This conversation has gone on long enough. In your reply now, wrap up warmly, thank them, and set "done": true with your best-effort lead fields even if some are incomplete.`
+      : SYSTEM_PROMPT;
+
+  // The free-tier Gemini API occasionally has transient hiccups (brief
+  // overload, rate-limit blips). Retry once with a short backoff before
+  // giving up, so a single flaky call doesn't dump a real visitor into the
+  // fallback reply. Each attempt gets its own timeout budget so two
+  // attempts plus backoff comfortably fit inside the function's maxDuration.
+  const MAX_ATTEMPTS = 2;
+    const ATTEMPT_TIMEOUT_MS = 7000;
+    const RETRY_BACKOFF_MS = 400;
+
+  let parsed = null;
+    let lastErr = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+                parsed = await callGemini(systemText, history, ATTEMPT_TIMEOUT_MS);
+                break;
+        } catch (err) {
+                lastErr = err;
+                console.error(`Chat turn attempt ${attempt}/${MAX_ATTEMPTS} failed:`, err.message);
+                if (attempt < MAX_ATTEMPTS) await sleep(RETRY_BACKOFF_MS);
+        }
+  }
+
+  if (!parsed) {
+        console.error("Chat turn failed after retries, using fallback reply:", lastErr?.message);
+        return res.status(200).json(fallbackResponse());
+  }
 
   try {
-        const systemText = forceWrapUp
-          ? `${SYSTEM_PROMPT}\n\nIMPORTANT: This conversation has gone on long enough. In your reply now, wrap up warmly, thank them, and set "done": true with your best-effort lead fields even if some are incomplete.`
-                : SYSTEM_PROMPT;
-
-      const response = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-        {
-                  method: "POST",
-                  headers: {
-                              "Content-Type": "application/json",
-                              "x-goog-api-key": process.env.GEMINI_API_KEY,
-                  },
-                  body: JSON.stringify({
-                              system_instruction: { parts: [{ text: systemText }] },
-                              contents: toGeminiContents(history),
-                              generationConfig: {
-                                            maxOutputTokens: 1024,
-                                            // REST API field name is snake_case — see note in api/qualify.js history.
-                                            response_mime_type: "application/json",
-                                            // Newer Gemini models default to "thinking" (internal reasoning
-                                            // tokens that count against maxOutputTokens). Left enabled, the
-                                            // model can burn the entire token budget on reasoning and emit
-                                            // nothing but a truncated "{" before hitting the limit. Disable
-                                            // it so the budget goes to the actual JSON reply.
-                                            thinkingConfig: { thinkingBudget: 0 },
-                              },
-                  }),
-                  signal: controller.signal,
-        }
-            );
-
-      clearTimeout(timeout);
-
-      if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
-
-      const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-      const parsed = JSON.parse(extractJsonObject(text));
-
-      if (!parsed.reply || typeof parsed.reply !== "string") {
-              throw new Error("Missing reply field in Gemini response");
-      }
-
-      let emailSent = null;
+        let emailSent = null;
         if (parsed.done && parsed.lead) {
                 emailSent = await sendLeadEmail(parsed.lead, {
                           summary: parsed.summary,
@@ -192,8 +235,13 @@ export default async function handler(req, res) {
               emailSent,
       });
   } catch (err) {
-        clearTimeout(timeout);
-        console.error("Chat turn failed, using fallback reply:", err.message);
-        return res.status(200).json(fallbackResponse());
+        // Gemini succeeded; only the (non-critical) email send failed. Still
+        // deliver the reply to the visitor rather than falling back.
+        console.error("Lead email failed to send:", err.message);
+        return res.status(200).json({
+              reply: parsed.reply,
+              done: !!parsed.done,
+              emailSent: false,
+        });
   }
 }
