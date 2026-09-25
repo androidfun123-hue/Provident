@@ -57,14 +57,36 @@ Example of the exact shape (illustrative only — never reuse these words, alway
 // DeepSeek's chat completions API is OpenAI-style: messages use
 // role "user"/"assistant" (not Gemini's "model"), and content is a plain
 // string (not Gemini's parts array).
+//
+// Root cause of "works on turn 1, empty content from turn 2 onward": the
+// widget only stores the plain reply text from each turn, so past assistant
+// turns were being replayed to DeepSeek as plain sentences — while
+// response_format: json_object forces the CURRENT turn into strict JSON.
+// That mismatch (plain-text history + JSON-only decoding) appears to be
+// what pushed DeepSeek's JSON mode into returning empty content almost
+// every time once any history existed. Re-wrapping each past assistant
+// turn back into the same JSON shape keeps the whole conversation
+// consistent with the JSON-only instruction DeepSeek is being held to.
 function toDeepseekMessages(history) {
     return history
       .filter((m) => m && typeof m.text === "string" && (m.role === "user" || m.role === "model"))
       .slice(-40)
-      .map((m) => ({
-              role: m.role === "model" ? "assistant" : "user",
-              content: String(m.text).slice(0, 1000),
-      }));
+      .map((m) => {
+              if (m.role === "model") {
+                        return {
+                                    role: "assistant",
+                                    content: JSON.stringify({
+                                                  reply: String(m.text).slice(0, 1000),
+                                                  done: false,
+                                                  lead: null,
+                                                  summary: null,
+                                                  urgency: null,
+                                                  suggested_next_step: null,
+                                    }),
+                        };
+              }
+              return { role: "user", content: String(m.text).slice(0, 1000) };
+      });
 }
 
 // Extracts the first complete top-level JSON object from a string, tolerant
@@ -161,7 +183,23 @@ async function callDeepseek(systemText, history, timeoutMs, jsonMode = true) {
       const data = await response.json();
         const text = data.choices?.[0]?.message?.content || "";
 
-      const parsed = JSON.parse(extractJsonObject(text));
+      let parsed;
+        try {
+                parsed = JSON.parse(extractJsonObject(text));
+        } catch (err) {
+                // No JSON object at all in the response. If DeepSeek still wrote a
+                // real, coherent answer — just not wrapped in JSON (this happens on
+                // the jsonMode:false fallback attempt, since dropping response_format
+                // means the model isn't forced into JSON anymore) — use that text
+                // directly rather than throwing away a perfectly good reply. Only
+                // treat this as a real failure (and let the retry loop handle it)
+                // when the content is genuinely empty.
+                const trimmed = text.trim();
+                if (trimmed) {
+                          return { reply: trimmed, done: false, lead: null };
+                }
+                throw err;
+        }
 
       if (!parsed.reply || typeof parsed.reply !== "string") {
               throw new Error("Missing reply field in DeepSeek response");
