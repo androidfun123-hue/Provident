@@ -27,6 +27,11 @@
 (function () {
   "use strict";
 
+  var OA_RATE = 0.025;
+  var SA_RATE = 0.04;
+  var CPF_LIFE_MIN = 60000;
+  var BELOW_MIN_NOTE =
+    "This matters: CPF only signs you up for CPF LIFE (paid every month, for life) automatically once you have at least $60,000. Below that, you'd default to a plan that pays out for about 20 years and then stops, even if you're still around. The good news &mdash; you can still choose to join CPF LIFE yourself, any time up to age 80. So it's worth saving toward at least $60,000, and ideally more.";
   var ANCHORS = { brs: 110200, frs: 220400, ers: 440800 };
   var PAYOUT_ANCHORS = [
     [0, 0],
@@ -39,11 +44,11 @@
   var PLAN_FACTORS = { standard: 1, basic: 0.9, escalating: 0.8 };
   var PLAN_NOTES = {
     standard:
-      "Level payouts for life. Higher bequest to beneficiaries than Escalating, lower than Basic. This only changes your monthly payout below — it doesn't change your projected Retirement Account or Retirement Sum figures above.",
+      "Same amount every month, for life. This only changes your monthly payout below — it doesn't change your savings estimate above it.",
     basic:
-      "Lower monthly payouts, but preserves more of your Retirement Account as a bequest — modelled here as roughly 10% lower than Standard. This “Basic” is a payout plan, not the Basic Retirement Sum (BRS) above — two different CPF terms that happen to share a name. It only changes your monthly payout below.",
+      "A smaller monthly amount, but leaves more money behind for your family — modelled here as roughly 10% lower than Standard. Note: this “Basic” payout plan is different from the Basic Retirement Sum (BRS) savings goal — they just share a name.",
     escalating:
-      "Starts lower but rises about 2% a year to help keep pace with inflation — modelled here as roughly 20% lower than Standard at the start. This only changes your monthly payout below — it doesn't change your projected Retirement Account or Retirement Sum figures above.",
+      "Starts smaller but grows about 2% a year, to help keep up with rising prices — modelled here as roughly 20% lower than Standard at the start. This only changes your monthly payout below.",
   };
 
   var state = { plan: "standard", topup: false };
@@ -116,6 +121,7 @@
     var a;
     var isPost55 = age >= 55;
     var frs55 = null, ers55 = null, brs55 = null, raBal, oaBal, buildFromAge, ra55, oa55;
+    var oaAt55 = null, saAt55 = null;
     var referenceAge = isPost55 ? age : 55;
 
     if (!isPost55) {
@@ -126,6 +132,8 @@
         sa = sa * (1 + sarate) + sac;
       }
 
+      oaAt55 = oa;
+      saAt55 = sa;
       frs55 = ANCHORS.frs * Math.pow(1 + growth, 55 - age);
       ers55 = ANCHORS.ers * Math.pow(1 + growth, 55 - age);
       brs55 = ANCHORS.brs * Math.pow(1 + growth, 55 - age);
@@ -184,6 +192,8 @@
       brs55: brs55,
       ra55: ra55,
       oa55: oa55,
+      oaAt55: oaAt55,
+      saAt55: saAt55,
       isPost55: isPost55,
       referenceAge: referenceAge,
     };
@@ -197,8 +207,8 @@
       oac: Number($("oac").value),
       sac: Number($("sac").value),
       growth: Number($("growth").value) / 100,
-      oarate: Number($("oarate").value) / 100,
-      sarate: Number($("sarate").value) / 100,
+      oarate: OA_RATE,
+      sarate: SA_RATE,
       payoutAge: Number($("payoutage").value),
       topup: state.topup,
     };
@@ -209,24 +219,21 @@
     $("v-oac").textContent = "$" + inputs.oac.toLocaleString("en-US");
     $("v-sac").textContent = "$" + inputs.sac.toLocaleString("en-US");
     $("v-growth").textContent = (inputs.growth * 100).toFixed(1) + "%/yr";
-    $("v-oarate").textContent = (inputs.oarate * 100).toFixed(1) + "%/yr";
-    $("v-sarate").textContent = (inputs.sarate * 100).toFixed(1) + "%/yr";
     $("v-payoutage").textContent = inputs.payoutAge;
   }
 
   function updatePayoutageNote(payoutAge) {
     var note = $("payoutage-note");
     if (payoutAge === 65) {
-      note.textContent = "Age 65 — the earliest official CPF LIFE start, no deferral adjustment.";
+      note.textContent = "Age 65 — the earliest official CPF LIFE start date, no bonus or penalty.";
     } else if (payoutAge > 65) {
       var pct = (Math.pow(1 + DEFERRAL_RATE, payoutAge - 65) - 1) * 100;
       note.textContent =
-        "Deferring to age " + payoutAge + " increases your payout by about " + pct.toFixed(0) +
-        "% versus starting at 65, based on CPF's published ~7%/year compounding deferral bonus.";
+        "Waiting until age " + payoutAge + " increases your payout by about " + pct.toFixed(0) +
+        "% compared to starting at 65.";
     } else {
       note.textContent =
-        "Age " + payoutAge + " is earlier than CPF LIFE's official 65+ start — shown here as an " +
-        "illustrative extrapolation using the same 7%/year factor in reverse, not an official CPF option.";
+        "Age " + payoutAge + " is earlier than CPF LIFE officially allows (65). Shown here just as an illustration, not a real option.";
     }
   }
 
@@ -236,33 +243,24 @@
     var ageNote = $("age-note");
     var sacField = $("sac-field");
     var hdg55 = $("hdg-55");
-    var tlFrs55 = $("tl-frs55");
-    var tlRa55 = $("tl-ra55");
-    var tlOa55 = $("tl-oa55");
-    var tlGap55 = $("tl-gap55");
+    var sub55 = $("sub-55");
 
     if (isPost55) {
-      saLabel.textContent = "Current RA balance";
+      saLabel.textContent = "Money in your Retirement Account (RA) now";
       saNote.textContent =
-        "CPF merges your SA into your Retirement Account at 55, so enter that RA balance here, not an SA balance.";
+        "At 55, CPF already moves your SA into a new Retirement Account (RA) for you — enter that RA balance here instead of SA.";
       ageNote.textContent =
-        "At 55+, OA no longer transfers automatically — the figures below start from the RA and OA balances you enter.";
+        "You're 55 or older, so the numbers below start from what you enter here.";
       sacField.style.display = "none";
-      hdg55.textContent = "Your Retirement Account today";
-      tlFrs55.textContent = "ERS ceiling (today)";
-      tlRa55.textContent = "Your RA today";
-      tlOa55.textContent = "Your OA today";
-      tlGap55.textContent = "Gap to ERS today";
+      hdg55.textContent = "What you have today";
+      sub55.textContent = "Your own RA and OA, as you entered them.";
     } else {
-      saLabel.textContent = "Current SA balance";
-      saNote.textContent = "";
+      saLabel.textContent = "Money in your SA account now";
+      saNote.textContent = "SA = Special Account, for retirement. It's fine to enter $0 if you're not sure or have very little.";
       ageNote.textContent = "";
       sacField.style.display = "";
-      hdg55.textContent = "Your Retirement Account at 55, projected";
-      tlFrs55.textContent = "Full Retirement Sum (FRS) target at 55";
-      tlRa55.textContent = "Your RA at 55";
-      tlOa55.textContent = "OA left after transfer";
-      tlGap55.textContent = "Shortfall to ERS at 55";
+      hdg55.textContent = "What you'll likely have by 55";
+      sub55.textContent = "How your OA and SA come together into one account.";
     }
   }
 
@@ -271,26 +269,33 @@
     if (ra65 >= ers65) {
       el.className = "gap-msg ok";
       el.innerHTML =
-        "<strong>Enhanced Retirement Sum reached</strong>You're projected to reach the top CPF LIFE payout tier by 65 &mdash; the estimate below reflects the maximum this tool models.";
+        "<strong>You've reached the Enhanced Retirement Sum</strong>By 65, you're projected to reach the highest CPF savings goal. The payout estimate below is the biggest amount this tool can show.";
     } else if (ra65 >= frs65) {
       el.className = "gap-msg ok";
       el.innerHTML =
-        "<strong>Full Retirement Sum reached</strong>You're projected to clear the Full Retirement Sum by 65 &mdash; the tier most CPF members land at. You're " +
-        fmtMoney(ers65 - ra65) + " short of the Enhanced Retirement Sum ceiling, which is only relevant if you're voluntarily topping up for a larger payout.";
+        "<strong>You've reached the Full Retirement Sum</strong>By 65, you're projected to have about " +
+        fmtMoney(ra65) + ". That's the amount most CPF members aim for, and it gives a solid monthly payout. Going further, to the Enhanced Retirement Sum, would grow your payout even more.";
     } else if (ra65 >= brs65) {
       el.className = "gap-msg ok";
       el.innerHTML =
-        "<strong>Between Basic and Full Retirement Sum</strong>You're projected at " +
-        fmtMoney(ra65) + " by 65 &mdash; above the " + fmtMoney(brs65) +
-        " Basic Retirement Sum, but " + fmtMoney(frs65 - ra65) +
-        " short of the Full Retirement Sum. That's still enough to join CPF LIFE, just at a smaller monthly payout than the Full Retirement Sum examples above.";
+        "<strong>You've reached the Basic Retirement Sum</strong>By 65, you're projected to have about " +
+        fmtMoney(ra65) + " &mdash; above the " + fmtMoney(brs65) +
+        " Basic Retirement Sum. That's enough to join CPF LIFE and get paid every month for life. Saving more could grow your payout further, up to the " +
+        fmtMoney(frs65) + " Full Retirement Sum.";
+    } else if (ra65 >= CPF_LIFE_MIN) {
+      el.className = "gap-msg warn";
+      el.innerHTML =
+        "<strong>You're below the Basic Retirement Sum</strong>By 65, you're projected to have about " +
+        fmtMoney(ra65) + ". The Basic Retirement Sum is " + fmtMoney(brs65) +
+        " &mdash; you're short by " + fmtMoney(brs65 - ra65) +
+        ". The good news: with over " + fmtMoney(CPF_LIFE_MIN) +
+        " saved, you're still automatically signed up for CPF LIFE, paid every month for life &mdash; just at a smaller amount. Saving even a little more, or a one-time top-up, can raise it.";
     } else {
       el.className = "gap-msg warn";
       el.innerHTML =
-        "<strong>Below Basic Retirement Sum</strong>You're projected at " +
-        fmtMoney(ra65) + " by 65, short of even the " + fmtMoney(brs65) +
-        " Basic Retirement Sum by " + fmtMoney(brs65 - ra65) +
-        ". Consider increasing contributions or a voluntary top-up if you'd like a larger CPF LIFE payout.";
+        "<strong>You're below the Basic Retirement Sum</strong>By 65, you're projected to have about " +
+        fmtMoney(ra65) + ", well short of the " + fmtMoney(brs65) +
+        " Basic Retirement Sum. " + BELOW_MIN_NOTE;
     }
   }
 
@@ -370,11 +375,11 @@
     out += '<path d="' + pathFor("combined") + '" fill="none" stroke="#1f9d6b" stroke-width="2.5"/>';
 
     out += '<rect x="' + padL + '" y="8" width="14" height="4" fill="#1f9d6b"/>';
-    out += '<text x="' + (padL + 20) + '" y="14" font-size="10" fill="#1c2530">RA (or OA+SA pre-55)</text>';
-    out += '<rect x="' + (padL + 170) + '" y="8" width="14" height="4" fill="#9aa7b8"/>';
-    out += '<text x="' + (padL + 190) + '" y="14" font-size="10" fill="#1c2530">OA leftover</text>';
-    out += '<rect x="' + (padL + 300) + '" y="8" width="14" height="4" fill="#92620a"/>';
-    out += '<text x="' + (padL + 320) + '" y="14" font-size="10" fill="#1c2530">ERS ceiling</text>';
+    out += '<text x="' + (padL + 20) + '" y="14" font-size="10" fill="#1c2530">Your savings</text>';
+    out += '<rect x="' + (padL + 140) + '" y="8" width="14" height="4" fill="#9aa7b8"/>';
+    out += '<text x="' + (padL + 160) + '" y="14" font-size="10" fill="#1c2530">Extra OA</text>';
+    out += '<rect x="' + (padL + 260) + '" y="8" width="14" height="4" fill="#92620a"/>';
+    out += '<text x="' + (padL + 280) + '" y="14" font-size="10" fill="#1c2530">Biggest goal (ERS)</text>';
 
     svg.innerHTML = out;
   }
@@ -457,36 +462,42 @@
     var frs65 = ANCHORS.frs * Math.pow(1 + inputs.growth, 65 - inputs.age);
     var brs65 = ANCHORS.brs * Math.pow(1 + inputs.growth, 65 - inputs.age);
 
-    // "Retirement Account at 55" (or "today", if already 55+) tiles
+    // 3-goals row at 55 (or "today", if already 55+)
+    $("t-brs55").textContent = fmtMoney(sim.brs55);
+    $("t-frs55").textContent = fmtMoney(sim.frs55);
+    $("t-ers55").textContent = fmtMoney(sim.ers55);
+
+    // OA + SA -> RA card
+    var raRow55 = $("ra-row-55");
+    var raArrow55 = $("ra-arrow-55");
+    var raResultLabel55 = $("ra-result-label-55");
+    var oaLeftoverLine55 = $("oa-leftover-line-55");
     if (sim.isPost55) {
-      $("t-frs55").textContent = fmtMoney(sim.ers55);
-      $("t-frs55-sub").textContent = "This year's Enhanced Retirement Sum ceiling";
+      if (raRow55) raRow55.style.display = "none";
+      if (raArrow55) raArrow55.style.display = "none";
+      raResultLabel55.textContent = "Your RA today";
       $("t-ra55").textContent = fmtMoney(sim.ra55);
       $("t-ra55-sub").textContent = inputs.topup
-        ? "Includes an immediate OA top-up to this year's ERS"
+        ? "Includes an OA top-up toward the biggest goal"
         : "As entered";
-      $("t-oa55").textContent = fmtMoney(sim.oa55);
-      var gapToday = Math.max(0, sim.ers55 - sim.ra55);
-      $("t-gap55").textContent = fmtMoney(gapToday);
-      $("t-gap55-sub").textContent =
-        gapToday > 0
-          ? "To reach the Enhanced Retirement Sum today"
-          : "You've already reached the Enhanced Retirement Sum";
+      oaLeftoverLine55.innerHTML =
+        sim.oa55 > 0.5
+          ? "You also have " + fmtMoney(sim.oa55) + " in your OA, still earning interest &mdash; separate from your RA."
+          : "";
     } else {
-      $("t-frs55").textContent = fmtMoney(sim.frs55);
-      $("t-frs55-sub").textContent =
-        "Projected at " + (inputs.growth * 100).toFixed(1) + "%/yr growth";
+      if (raRow55) raRow55.style.display = "";
+      if (raArrow55) raArrow55.style.display = "";
+      raResultLabel55.textContent = "Your RA at 55";
+      $("t-merge-oa55").textContent = fmtMoney(sim.oaAt55);
+      $("t-merge-sa55").textContent = fmtMoney(sim.saAt55);
       $("t-ra55").textContent = fmtMoney(sim.ra55);
       $("t-ra55-sub").textContent = inputs.topup
-        ? "SA + OA transferred, plus OA top-up to ERS"
-        : "SA + OA transferred, up to that year's FRS";
-      $("t-oa55").textContent = fmtMoney(sim.oa55);
-      var gap55 = Math.max(0, sim.ers55 - sim.ra55);
-      $("t-gap55").textContent = fmtMoney(gap55);
-      $("t-gap55-sub").textContent =
-        gap55 > 0
-          ? "To reach the Enhanced Retirement Sum at 55"
-          : "You reached the Enhanced Retirement Sum at 55";
+        ? "Your SA + OA, plus a top-up toward the biggest goal"
+        : "Your SA and OA moved into this account";
+      oaLeftoverLine55.innerHTML =
+        sim.oa55 > 0.5
+          ? "Plus " + fmtMoney(sim.oa55) + " left over in your OA, still earning interest."
+          : "All of your OA and SA moved into your RA &mdash; none left over.";
     }
 
     // BRS indicator — only surfaced when the projected RA falls short of
@@ -498,31 +509,35 @@
         brsNote.style.display = "block";
         if (sim.ra55 >= sim.brs55) {
           brsNote.innerHTML =
-            "<strong>Below Full Retirement Sum:</strong> your projected RA of " +
+            "<strong>Above the Basic Retirement Sum</strong> At 55, you're projected to have about " +
             fmtMoney(sim.ra55) +
-            " is short of the " +
-            fmtMoney(sim.frs55) +
-            " Full Retirement Sum (FRS) target, but still above the " +
+            ". That's above the " +
             fmtMoney(sim.brs55) +
-            " Basic Retirement Sum (BRS) &mdash; the lowest tier in the glossary above. Your CPF LIFE payout will be scaled down from the Standard-Plan examples shown, roughly in proportion to where your RA sits between BRS and FRS.";
+            " Basic Retirement Sum, so you're on track to join CPF LIFE. It's " +
+            fmtMoney(sim.frs55 - sim.ra55) +
+            " below the Full Retirement Sum, which would give a bigger monthly payout.";
         } else {
           brsNote.innerHTML =
-            "<strong>Below Basic Retirement Sum:</strong> your projected RA of " +
+            "<strong>Below the Basic Retirement Sum</strong> At 55, you're projected to have about " +
             fmtMoney(sim.ra55) +
-            " doesn't yet reach the " +
+            " &mdash; short of the " +
             fmtMoney(sim.brs55) +
-            " Basic Retirement Sum (BRS) &mdash; the lowest of CPF's three Retirement Sum tiers. You can still join CPF LIFE with a smaller RA, but your monthly payout will be scaled down well below the Standard-Plan examples shown here.";
+            " Basic Retirement Sum. You still have until 65 to grow this. See the note further down on what your balance size means for your CPF LIFE payouts.";
         }
       } else {
         brsNote.style.display = "none";
       }
     }
 
-    // 65 tiles
+    // 3-goals row + savings at 65
+    $("t-brs65").textContent = fmtMoney(brs65);
+    $("t-frs65").textContent = fmtMoney(frs65);
     $("t-ers65").textContent = fmtMoney(s65.ers);
     $("t-ra65").textContent = fmtMoney(s65.ra);
-    $("t-oa65").textContent = fmtMoney(s65.oaLeft);
-    $("t-gapers").textContent = fmtMoney(Math.max(0, s65.ers - s65.ra));
+    $("oa-leftover-line-65").innerHTML =
+      s65.oaLeft > 0.5
+        ? "Plus " + fmtMoney(s65.oaLeft) + " left over in your OA, still earning interest."
+        : "All of your OA has moved toward your goals &mdash; none left over.";
     updateGapMsg(s65.ra, s65.ers, frs65, brs65);
 
     // Payout
@@ -563,7 +578,7 @@
   }
 
   function init() {
-    ["age", "oac", "sac", "growth", "oarate", "sarate", "payoutage"].forEach(function (id) {
+    ["age", "oac", "sac", "growth", "payoutage"].forEach(function (id) {
       $(id).addEventListener("input", recalc);
     });
 
