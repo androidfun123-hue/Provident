@@ -42,11 +42,14 @@ Style:
 - Do not invent promises, discounts, prices, or guarantees you were not given. Do not diagnose their insurance needs or give specific policy advice — that is for a licensed follow-up call, not this chat.
 - Do not be a pushover: if they dodge a question, gently redirect once, but don't loop on the same question forever — and never ask the same age/income/health-style question twice.
 
+Quick replies: whenever the natural next answer is a small fixed set of options (e.g. general vs personal insurance, yes/no on existing coverage, a property type, a rough timeline, smoking yes/no), fill "quick_replies" with 2 to 4 short tappable options so the visitor can answer with one tap instead of typing. Keep each one a few words — a label, not a sentence (e.g. "HDB", "Condo", "Landed", not "I live in an HDB flat"). If the natural answer is open-ended (a name, contact info, a number, or any other free-text detail), set "quick_replies" to null so they type normally. Never invent options that don't correspond to what you actually asked.
+
 Once you have an email or mobile number from them, do NOT immediately end the chat. Keep it going naturally to work in the underwriting-relevant details above for their track, one question at a time. Once you've either covered the relevant ones or they clearly signal they're done (no more / that's all / gotta go), thank them warmly, let them know someone will follow up, and set "done": true with the lead fields filled in from whatever was shared during the conversation (contact is required; other fields can be null if not given).
 
 Respond ONLY with a single JSON object, no other text, matching exactly this shape:
 {
   "reply": "string — what you say next to the visitor",
+    "quick_replies": array of 2-4 short strings (a few words each) — tappable answer options for THIS question, or null if the visitor should type a free-text answer,
     "done": boolean,
       "lead": null or {
           "name": "string or null",
@@ -74,7 +77,35 @@ Respond ONLY with a single JSON object, no other text, matching exactly this sha
                                                                   Set "lead", "summary", "urgency" and "suggested_next_step" to null while done is false.
 
 Example of the exact shape (illustrative only — never reuse these words, always write your own reply for the real conversation):
-{"reply": "Got it, a small business — what are you mainly looking to protect: your premises, stock, vehicles, or something else?", "done": false, "lead": null, "summary": null, "urgency": null, "suggested_next_step": null}`;
+{"reply": "Got it, a small business — what are you mainly looking to protect: your premises, stock, vehicles, or something else?", "quick_replies": ["Premises", "Stock", "Vehicles", "Something else"], "done": false, "lead": null, "summary": null, "urgency": null, "suggested_next_step": null}`;
+
+// Builds an extra system-prompt block describing context passed in from the
+// page the visitor opened the chat from (e.g. the CPF LIFE calculator), so
+// the AI can pick up the conversation from what they already worked out
+// instead of asking them to repeat it. Returns "" when there's nothing
+// usable to add — this must never throw on odd/missing input since it runs
+// on every request before any validation of body.context happens.
+function buildContextBlock(context) {
+    if (!context || typeof context !== "object") return "";
+    if (context.source === "cpf-calculator") {
+          const bits = [];
+          if (typeof context.age === "number") bits.push(`age ${context.age}`);
+          if (typeof context.monthlyPayout === "number") {
+                  bits.push(
+                            `an estimated CPF LIFE payout of about $${context.monthlyPayout}/month starting at age ${context.payoutAge || 65}`
+                  );
+          }
+          if (typeof context.projectedRA65 === "number") {
+                  bits.push(`a projected Retirement Account balance of about $${context.projectedRA65} at 65`);
+          }
+          if (context.belowBRS) bits.push("currently projected to fall short of the Basic Retirement Sum");
+          if (bits.length === 0) return "";
+          return `\n\nCONTEXT: This visitor just used the CPF LIFE calculator on the website before opening this chat (${bits.join(
+                  ", "
+          )}). You already know this — don't ask them to repeat it. You can acknowledge it naturally once, but it's their own self-entered estimate, not an official quote, so don't restate the exact figures as guarantees. Lean the conversation toward the personal/life insurance & retirement-planning track unless they steer elsewhere.`;
+    }
+    return "";
+}
 
 // DeepSeek's chat completions API is OpenAI-style: messages use
 // role "user"/"assistant" (not Gemini's "model"), and content is a plain
@@ -99,6 +130,7 @@ function toDeepseekMessages(history) {
                                     role: "assistant",
                                     content: JSON.stringify({
                                                   reply: String(m.text).slice(0, 1000),
+                                                  quick_replies: null,
                                                   done: false,
                                                   lead: null,
                                                   summary: null,
@@ -155,6 +187,7 @@ function fallbackResponse() {
     return {
           reply:
                   "Sorry, I'm having a little trouble on my end right now — could you leave your name and the best way to reach you (email or phone)? Someone from Provident Financial Planning will follow up personally.",
+          quickReplies: null,
           done: false,
           emailSent: null,
     };
@@ -227,6 +260,18 @@ async function callDeepseek(systemText, history, timeoutMs, jsonMode = true) {
               throw new Error("Missing reply field in DeepSeek response");
       }
 
+      // Sanitize quick_replies rather than trusting the model's output
+      // shape directly — a malformed value here should never break the
+      // whole turn the way a missing "reply" would.
+      if (Array.isArray(parsed.quick_replies)) {
+              parsed.quick_replies = parsed.quick_replies
+                        .filter((s) => typeof s === "string" && s.trim())
+                        .slice(0, 4);
+              if (parsed.quick_replies.length === 0) parsed.quick_replies = null;
+      } else {
+              parsed.quick_replies = null;
+      }
+
       return parsed;
   } finally {
         clearTimeout(timeout);
@@ -255,9 +300,11 @@ export default async function handler(req, res) {
   const userTurnCount = history.filter((m) => m && m.role === "user").length;
     const forceWrapUp = userTurnCount >= MAX_USER_TURNS;
 
-  const systemText = forceWrapUp
-        ? `${SYSTEM_PROMPT}\n\nIMPORTANT: This conversation has gone on long enough. In your reply now, wrap up warmly, thank them, and set "done": true with your best-effort lead fields even if some are incomplete.`
-      : SYSTEM_PROMPT;
+  const contextBlock = buildContextBlock(body.context);
+    const systemText =
+        (forceWrapUp
+              ? `${SYSTEM_PROMPT}\n\nIMPORTANT: This conversation has gone on long enough. In your reply now, wrap up warmly, thank them, and set "done": true with your best-effort lead fields even if some are incomplete.`
+            : SYSTEM_PROMPT) + contextBlock;
 
   // APIs occasionally have transient hiccups (brief overload, rate-limit
   // blips). DeepSeek's own docs warn that its JSON mode "may occasionally
@@ -299,15 +346,20 @@ export default async function handler(req, res) {
   try {
         let emailSent = null;
         if (parsed.done && parsed.lead) {
-                emailSent = await sendLeadEmail(parsed.lead, {
-                          summary: parsed.summary,
-                          urgency: parsed.urgency,
-                          suggested_next_step: parsed.suggested_next_step,
-                });
+                emailSent = await sendLeadEmail(
+                          parsed.lead,
+                          {
+                                    summary: parsed.summary,
+                                    urgency: parsed.urgency,
+                                    suggested_next_step: parsed.suggested_next_step,
+                          },
+                          body.context
+                );
         }
 
       return res.status(200).json({
               reply: parsed.reply,
+              quickReplies: parsed.quick_replies || null,
               done: !!parsed.done,
               emailSent,
       });
@@ -318,6 +370,7 @@ export default async function handler(req, res) {
         console.error("Lead email failed to send:", err.message);
         return res.status(200).json({
               reply: parsed.reply,
+              quickReplies: parsed.quick_replies || null,
               done: !!parsed.done,
               emailSent: false,
         });

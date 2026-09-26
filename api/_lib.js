@@ -45,7 +45,25 @@ export function createRateLimiter(perDay) {
     };
 }
 
-export async function sendLeadEmail(lead, aiSummary) {
+// Describes where the chat came from for the lead email, using whatever
+// page-context object (if any) was passed along from the widget — e.g. the
+// CPF LIFE calculator's snapshot of what the visitor entered there. Falls
+// back to a plain "no page context" line rather than throwing, since a
+// malformed or missing context should never block the lead email itself.
+function describeSourceContext(ctx) {
+    if (!ctx || typeof ctx !== "object") return "Website chat widget (no page context)";
+    if (ctx.source === "cpf-calculator") {
+          const parts = ["CPF LIFE calculator page"];
+          if (typeof ctx.age === "number") parts.push(`age ${ctx.age}`);
+          if (typeof ctx.monthlyPayout === "number") parts.push(`est. payout $${ctx.monthlyPayout}/mo`);
+          if (typeof ctx.projectedRA65 === "number") parts.push(`projected RA @65 ~$${ctx.projectedRA65}`);
+          if (ctx.belowBRS) parts.push("currently below BRS");
+          return parts.join(", ");
+    }
+    return "Website chat widget";
+}
+
+export async function sendLeadEmail(lead, aiSummary, sourceContext) {
     try {
           const res = await fetch("https://api.resend.com/emails", {
                   method: "POST",
@@ -59,6 +77,7 @@ export async function sendLeadEmail(lead, aiSummary) {
         subject: `[${(aiSummary.urgency || "warm").toUpperCase()}] New ${lead.insurance_type ? lead.insurance_type + " " : ""}lead: ${lead.name || "Unknown"} — ${lead.interest || "General enquiry"}`,
                               text: `New lead from your website chat widget.
 
+                        Source: ${describeSourceContext(sourceContext)}
                         Insurance type: ${lead.insurance_type || "(not specified)"}
                         Name: ${lead.name || "(not given)"}
                             Contact: ${lead.contact || "(not given)"}
