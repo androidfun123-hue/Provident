@@ -14,12 +14,21 @@
  *     and receiving the same annual contribution. If top-up is on, any
  *     year OA can close the (rising) gap to that year's ERS ceiling, it
  *     does.
- *  4. The Standard Plan monthly payout at 65 is estimated by linearly
+ *  4. BRS/FRS/ERS for any calendar year come from CPF Board's own published
+ *     cohort schedule (exact through 2027) and, beyond that, an
+ *     extrapolation at the "CPF goals grow by" rate — see
+ *     COHORT_SCHEDULE / retirementSumsForYear() below. This is keyed off
+ *     today's real date, so the tool stays correct year over year without
+ *     needing the figures hand-edited (only needs a new schedule entry once
+ *     CPF announces further cohort years).
+ *  5. The Standard Plan monthly payout at 65 is estimated by linearly
  *     interpolating the projected RA-at-65 against CPF Board's published
- *     2026-cohort Standard Plan examples at BRS/FRS/ERS.
- *  5. Basic and Escalating plans apply a rough illustrative adjustment to
+ *     2026-cohort Standard Plan payout-per-RA-dollar examples — this ratio
+ *     is assumed roughly stable year to year, per CPF's own footnote that
+ *     such adjustments are "small and gradual".
+ *  6. Basic and Escalating plans apply a rough illustrative adjustment to
  *     that baseline (CPF Board doesn't publish an exact formula).
- *  6. Deferring or (illustratively) starting earlier than 65 scales the
+ *  7. Deferring or (illustratively) starting earlier than 65 scales the
  *     payout by 1.07^(age-65) — CPF's published ~7%/year compounding
  *     deferral bonus, mirrored in reverse for 63-64.
  */
@@ -32,23 +41,87 @@
   var CPF_LIFE_MIN = 60000;
   var BELOW_MIN_NOTE =
     "This matters: CPF only signs you up for CPF LIFE (paid every month, for life) automatically once you have at least $60,000. Below that, you'd default to a plan that pays out for about 20 years and then stops, even if you're still around. The good news &mdash; you can still choose to join CPF LIFE yourself, any time up to age 80. So it's worth saving toward at least $60,000, and ideally more.";
-  var ANCHORS = { brs: 110200, frs: 220400, ers: 440800 };
+  var CURRENT_YEAR = new Date().getFullYear();
+  // CPF Board sets each year's Retirement Sums years in advance. Budget 2022
+  // locked in the schedule through 2027; these are the exact published
+  // figures (source: mom.gov.sg factsheet on Basic Retirement Sums 2023-2027,
+  // and CPF Board's published Full/Enhanced Retirement Sum figures for the
+  // same cohorts — note ERS became 4x BRS from the 2025 cohort onward,
+  // up from 3x BRS previously).
+  var COHORT_SCHEDULE = {
+    2023: { brs: 99400, frs: 198800, ers: 298200 },
+    2024: { brs: 102900, frs: 205800, ers: 308700 },
+    2025: { brs: 106500, frs: 213000, ers: 426000 },
+    2026: { brs: 110200, frs: 220400, ers: 440800 },
+    2027: { brs: 114100, frs: 228200, ers: 456400 },
+  };
+  var LAST_KNOWN_COHORT_YEAR = 2027;
+  var FIRST_KNOWN_COHORT_YEAR = 2023;
+  // Retirement Sums for any calendar year: uses CPF's own published figure
+  // when we have one (2023-2027), and otherwise extrapolates from the
+  // nearest published year using the "CPF goals grow by" rate, since CPF
+  // hasn't announced exact figures beyond 2027 yet. This keeps the tool
+  // accurate on its own every year, without needing the anchor figures
+  // hand-edited — only this schedule needs a new entry once CPF announces
+  // further years.
+  function retirementSumsForYear(year, growth) {
+    if (COHORT_SCHEDULE[year]) return COHORT_SCHEDULE[year];
+    var baseYear = year > LAST_KNOWN_COHORT_YEAR ? LAST_KNOWN_COHORT_YEAR : FIRST_KNOWN_COHORT_YEAR;
+    var base = COHORT_SCHEDULE[baseYear];
+    var factor = Math.pow(1 + growth, year - baseYear);
+    return { brs: base.brs * factor, frs: base.frs * factor, ers: base.ers * factor };
+  }
+  // Keyed by the projected RA balance AT 65 (not the RA-at-55 goal amounts
+  // above) against CPF Board's published 2026-cohort Standard Plan monthly
+  // payout examples. Source: cpf.gov.sg "How much CPF payouts can I get
+  // every month" — the $950/$1,780/$3,440 figures are the same published
+  // Standard Plan examples for BRS/FRS/ERS, but that table also gives the
+  // RA balance those members would actually be projected to hold AT 65
+  // (after 10 more years of interest from the RA-at-55 goal amount), which
+  // is the correct x-axis for this interpolation.
   var PAYOUT_ANCHORS = [
     [0, 0],
-    [110200, 950],
-    [220400, 1780],
-    [440800, 3440],
+    [82400, 490],
+    [170100, 950],
+    [227900, 1250],
+    [330100, 1780],
+    [445600, 2380],
+    [650100, 3440],
   ];
+  // CPF's real "extra interest" bonus, on top of the guaranteed floor rates
+  // (2.5% OA / 4% SA & RA): an extra 1%/yr on the first $60,000 of combined
+  // balances (OA counted up to $20,000 of that), and — from 55 onward — a
+  // further extra 1%/yr on the first $30,000 (so +2% on the first $30,000,
+  // +1% on the next $30,000). Extra interest earned "on" OA always transfers
+  // into SA (pre-55) or RA (55+) rather than staying in OA. This tool
+  // ignores MediSave (MA) balances in the combined-balance cap, which will
+  // slightly overstate the bonus for members with meaningful MA savings.
+  var EXTRA_INTEREST_CAP = 60000;
+  var EXTRA_INTEREST_OA_CAP = 20000;
+  var EXTRA_INTEREST_RATE = 0.01;
+  var EXTRA_INTEREST_55_BONUS_CAP = 30000;
+  var EXTRA_INTEREST_55_BONUS_RATE = 0.01;
   var DEFERRAL_RATE = 0.07;
   var ESCALATING_GROWTH = 0.02;
   var PLAN_FACTORS = { standard: 1, basic: 0.9, escalating: 0.8 };
   var PLAN_NOTES = {
     standard:
-      "Same amount every month, for life. This only changes your monthly payout below — it doesn't change your savings estimate above it.",
+      "Standard Plan (Default): same amount every month, for life. This only changes your monthly payout below — it doesn't change your savings estimate above it.",
     basic:
-      "A smaller monthly amount, but leaves more money behind for your family — modelled here as roughly 10% lower than Standard. Note: this “Basic” payout plan is different from the Basic Retirement Sum (BRS) savings goal — they just share a name.",
+      "Basic Plan: a smaller monthly amount, but leaves more money behind for your family — modelled here as roughly 10% lower than the Standard Plan. Note: the “Basic Plan” is different from the Basic Retirement Sum (BRS) savings goal — they just share a name.",
     escalating:
-      "Starts smaller but grows about 2% a year, to help keep up with rising prices — modelled here as roughly 20% lower than Standard at the start. This only changes your monthly payout below.",
+      "Escalating Plan: starts smaller but grows about 2% a year, to help keep up with rising prices — modelled here as roughly 20% lower than the Standard Plan at the start. This only changes your monthly payout below.",
+  };
+
+  // Quick-start example profiles. Illustrative starting points only — not
+  // official CPF averages — meant to give people a realistic-feeling
+  // starting point to adjust from, whether they're a freelancer or a
+  // salaried working professional.
+  var TEMPLATES = {
+    freelancer: { age: 35, oa: 8000, sa: 4000, oac: 0, sac: 0 },
+    professional: { age: 35, oa: 52000, sa: 30000, oac: 7000, sac: 2000 },
+    midcareer: { age: 45, oa: 110000, sa: 75000, oac: 8000, sac: 3000 },
+    near55: { age: 58, oa: 20000, sa: 160000, oac: 0, sac: 0 },
   };
 
   var state = { plan: "standard", topup: false };
@@ -92,6 +165,27 @@
     return 0;
   }
 
+  // Extra 1%/yr on the first $60,000 of combined OA+SA (OA capped at
+  // $20,000 of that). Credited to SA — OA's share transfers out to SA.
+  function extraInterestPre55(oa, sa) {
+    var oaCounted = Math.min(oa, EXTRA_INTEREST_OA_CAP);
+    var remainingCap = Math.max(0, EXTRA_INTEREST_CAP - oaCounted);
+    var saCounted = Math.min(sa, remainingCap);
+    return (oaCounted + saCounted) * EXTRA_INTEREST_RATE;
+  }
+
+  // From 55: same first-$60,000 bonus, plus an additional 1%/yr on the
+  // first $30,000 (so +2% on the first $30,000, +1% on the next $30,000).
+  // Credited to RA — OA's share transfers out to RA.
+  function extraInterestPost55(ra, oa) {
+    var oaCounted = Math.min(oa, EXTRA_INTEREST_OA_CAP);
+    var remainingCap = Math.max(0, EXTRA_INTEREST_CAP - oaCounted);
+    var raCounted = Math.min(ra, remainingCap);
+    var tier1 = Math.min(raCounted, EXTRA_INTEREST_55_BONUS_CAP);
+    var tier2 = Math.max(0, raCounted - EXTRA_INTEREST_55_BONUS_CAP);
+    return tier1 * (EXTRA_INTEREST_RATE + EXTRA_INTEREST_55_BONUS_RATE) + tier2 * EXTRA_INTEREST_RATE;
+  }
+
   function payoutAtAge(payout65std, planFactor, age) {
     return payout65std * planFactor * Math.pow(1 + DEFERRAL_RATE, age - 65);
   }
@@ -126,17 +220,19 @@
 
     if (!isPost55) {
       for (a = age; a < 55; a++) {
-        var ersA = ANCHORS.ers * Math.pow(1 + growth, a - age);
+        var ersA = retirementSumsForYear(CURRENT_YEAR + (a - age), growth).ers;
         series.push({ age: a, ra: null, combined: oa + sa, oaLeft: 0, ers: ersA });
+        var extraPre = extraInterestPre55(oa, sa);
         oa = oa * (1 + oarate) + oac;
-        sa = sa * (1 + sarate) + sac;
+        sa = sa * (1 + sarate) + sac + extraPre;
       }
 
       oaAt55 = oa;
       saAt55 = sa;
-      frs55 = ANCHORS.frs * Math.pow(1 + growth, 55 - age);
-      ers55 = ANCHORS.ers * Math.pow(1 + growth, 55 - age);
-      brs55 = ANCHORS.brs * Math.pow(1 + growth, 55 - age);
+      var sums55 = retirementSumsForYear(CURRENT_YEAR + (55 - age), growth);
+      frs55 = sums55.frs;
+      ers55 = sums55.ers;
+      brs55 = sums55.brs;
       if (sa >= frs55) {
         raBal = frs55;
         oaBal = oa + (sa - frs55);
@@ -158,9 +254,10 @@
       // balance directly and there's no 55-transfer step to simulate.
       raBal = sa;
       oaBal = oa;
-      ers55 = ANCHORS.ers * Math.pow(1 + growth, 0);
-      frs55 = ANCHORS.frs * Math.pow(1 + growth, 0);
-      brs55 = ANCHORS.brs * Math.pow(1 + growth, 0);
+      var sumsNow = retirementSumsForYear(CURRENT_YEAR, growth);
+      ers55 = sumsNow.ers;
+      frs55 = sumsNow.frs;
+      brs55 = sumsNow.brs;
       if (topup && raBal < ers55 && oaBal > 0) {
         var t0 = Math.min(oaBal, ers55 - raBal);
         raBal += t0;
@@ -174,9 +271,10 @@
     oa55 = oaBal;
 
     for (a = buildFromAge; a <= 70; a++) {
-      raBal = raBal * (1 + sarate);
+      var extraPost = extraInterestPost55(raBal, oaBal);
+      raBal = raBal * (1 + sarate) + extraPost;
       oaBal = oaBal * (1 + oarate) + oac;
-      var ersYr = ANCHORS.ers * Math.pow(1 + growth, a - age);
+      var ersYr = retirementSumsForYear(CURRENT_YEAR + (a - age), growth).ers;
       if (topup && raBal < ersYr && oaBal > 0) {
         var t = Math.min(oaBal, ersYr - raBal);
         raBal += t;
@@ -459,8 +557,9 @@
         break;
       }
     }
-    var frs65 = ANCHORS.frs * Math.pow(1 + inputs.growth, 65 - inputs.age);
-    var brs65 = ANCHORS.brs * Math.pow(1 + inputs.growth, 65 - inputs.age);
+    var sums65 = retirementSumsForYear(CURRENT_YEAR + (65 - inputs.age), inputs.growth);
+    var frs65 = sums65.frs;
+    var brs65 = sums65.brs;
 
     // 3-goals row at 55 (or "today", if already 55+)
     $("t-brs55").textContent = fmtMoney(sim.brs55);
@@ -564,6 +663,17 @@
     renderPayoutChart(payout65std, planFactor, inputs.payoutAge);
   }
 
+  function applyTemplate(key) {
+    var t = TEMPLATES[key];
+    if (!t) return;
+    $("age").value = String(t.age);
+    $("oa").value = t.oa.toLocaleString("en-US");
+    $("sa").value = t.sa.toLocaleString("en-US");
+    $("oac").value = String(t.oac);
+    $("sac").value = String(t.sac);
+    recalc();
+  }
+
   function setupPillGroup(id, dataAttr, onChange) {
     var group = $(id);
     group.querySelectorAll("button").forEach(function (btn) {
@@ -601,6 +711,17 @@
       state.topup = topup === "on";
       recalc();
     });
+
+    setupPillGroup("template-group", "data-template", function (key) {
+      applyTemplate(key);
+    });
+
+    var nowSums = retirementSumsForYear(CURRENT_YEAR, 0.035);
+    $("goal-brs-now").textContent = fmtMoney(nowSums.brs);
+    $("goal-frs-now").textContent = fmtMoney(nowSums.frs);
+    $("goal-ers-now").textContent = fmtMoney(nowSums.ers);
+    $("goal-year-note").textContent =
+      "These are the " + CURRENT_YEAR + " figures for people turning 55 this year. CPF Board sets new (higher) figures years ahead of time — so they'll be a little higher if you check back next year, and this tool updates itself to match.";
 
     recalc();
   }

@@ -79,6 +79,12 @@
   .pillgroup { display: flex; gap: 6px; background: var(--bg-alt); padding: 4px; border-radius: 10px; }
   .pillgroup button { flex: 1; border: none; background: transparent; padding: 9px 8px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit; }
   .pillgroup button.active { background: var(--navy); color: #fff; }
+  .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .template-grid button { text-align: left; border: 1.5px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 12px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; gap: 2px; }
+  .template-grid button:hover { border-color: var(--green); }
+  .template-grid button.active { border-color: var(--navy); background: var(--bg-alt); }
+  .tpl-name { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .tpl-sub { font-size: 12px; color: var(--muted); }
   .results { display: grid; gap: 20px; }
   .tile-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
   .tile { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
@@ -90,7 +96,7 @@
   .brs-note strong { color: var(--navy); }
   .goals-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
   .goal-tile { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 10px; text-align: center; }
-  .goal-label { font-size: 12px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .goal-label { font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; line-height: 1.35; }
   .goal-value { font-size: 18px; font-weight: 700; color: var(--navy); }
   .ra-card { background: var(--green-soft); border: 1px solid #bfe6d3; border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
   .ra-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; justify-content: center; }
@@ -207,23 +213,34 @@
         <div class="terms-card">
           <h4>3 CPF savings goals</h4>
           <div class="terms-sub">CPF has 3 target amounts. You only need to reach the first one to join CPF LIFE.</div>
-          <div class="terms-row"><span class="term-label">Basic (BRS)</span><span class="term-val">$110,200</span></div>
-          <div class="terms-row"><span class="term-label">Full (FRS)</span><span class="term-val">$220,400</span></div>
-          <div class="terms-row"><span class="term-label">Enhanced (ERS)</span><span class="term-val">$440,800</span></div>
-          <div class="terms-note">Reaching the <strong>Basic Retirement Sum</strong> is a good first goal for most freelancers &mdash; it already gets you a monthly payout for life. The <strong>Full</strong> and <strong>Enhanced</strong> goals just mean a bigger payout on top of that. Turn on &ldquo;Aim for a bigger goal?&rdquo; on the left if you want to see what a higher target looks like.</div>
+          <div class="terms-row"><span class="term-label">Basic Retirement Sum (BRS)</span><span class="term-val" id="goal-brs-now">$110,200</span></div>
+          <div class="terms-row"><span class="term-label">Full Retirement Sum (FRS)</span><span class="term-val" id="goal-frs-now">$220,400</span></div>
+          <div class="terms-row"><span class="term-label">Enhanced Retirement Sum (ERS)</span><span class="term-val" id="goal-ers-now">$440,800</span></div>
+          <div class="terms-note">Reaching the <strong>Basic Retirement Sum (BRS)</strong> is a good first goal for most freelancers &mdash; it already gets you a monthly payout for life. The <strong>Full Retirement Sum (FRS)</strong> and <strong>Enhanced Retirement Sum (ERS)</strong> goals just mean a bigger payout on top of that. Turn on &ldquo;Aim for a bigger goal?&rdquo; on the left if you want to see what a higher target looks like.</div>
+          <div class="terms-note" id="goal-year-note" style="margin-top:8px"></div>
         </div>
         <div class="terms-card">
           <h4>How you get paid</h4>
           <div class="terms-sub">Once your monthly payouts start, you can choose how they're paid out.</div>
-          <div class="terms-row"><span class="term-label">Basic</span><span class="term-val">Smaller amount, more left for family</span></div>
-          <div class="terms-row"><span class="term-label">Standard</span><span class="term-val">Same amount every month</span></div>
-          <div class="terms-row"><span class="term-label">Escalating</span><span class="term-val">Starts smaller, grows ~2%/yr</span></div>
-          <div class="terms-note">This is separate from the 3 savings goals above &mdash; it only changes how your payout is paid out, not how much you've saved. Note: CPF uses the word &ldquo;Basic&rdquo; for both a savings goal and a payout plan. They are not the same thing.</div>
+          <div class="terms-row"><span class="term-label">Basic Plan</span><span class="term-val">Smaller amount, more left for family</span></div>
+          <div class="terms-row"><span class="term-label">Standard Plan (Default)</span><span class="term-val">Same amount every month</span></div>
+          <div class="terms-row"><span class="term-label">Escalating Plan</span><span class="term-val">Starts smaller, grows ~2%/yr</span></div>
+          <div class="terms-note">This is separate from the 3 savings goals above &mdash; it only changes how your payout is paid out, not how much you've saved. Note: CPF uses the word &ldquo;Basic&rdquo; for both the <strong>Basic Retirement Sum</strong> (a savings goal) and the <strong>Basic Plan</strong> (a payout plan). They are not the same thing.</div>
         </div>
       </div>
 
       <div class="calc-grid">
         <div class="input-card card">
+          <div>
+            <h3>Quick start</h3>
+            <div class="field-note" style="margin-top:-6px;margin-bottom:10px">Not sure what to enter? Pick the situation closest to yours &mdash; you can still adjust every number below.</div>
+            <div class="template-grid" id="template-group">
+              <button data-template="freelancer" type="button"><span class="tpl-name">Freelancer</span><span class="tpl-sub">Little or no CPF</span></button>
+              <button data-template="professional" type="button"><span class="tpl-name">Working professional</span><span class="tpl-sub">Steady CPF contributions</span></button>
+              <button data-template="midcareer" type="button"><span class="tpl-name">Mid-career</span><span class="tpl-sub">Building up savings</span></button>
+              <button data-template="near55" type="button"><span class="tpl-name">Near retirement</span><span class="tpl-sub">Age 55 or older</span></button>
+            </div>
+          </div>
           <div>
             <h3>CPF LIFE plan</h3>
             <div class="field">
@@ -259,12 +276,12 @@
               <div class="field-note">This is for medical bills, not retirement, so it doesn't change the numbers below.</div>
             </div>
             <div class="field">
-              <div class="field-label">Extra money you add to OA each year <span class="val" id="v-oac">$0</span></div>
+              <div class="field-label">Yearly contribution to your OA <span class="val" id="v-oac">$0</span></div>
               <input type="range" id="oac" min="0" max="25000" step="500" value="0">
               <div class="field-note">Freelancers don't have to pay into OA like employees do. Leave this at $0 unless you make voluntary CPF contributions.</div>
             </div>
             <div class="field" id="sac-field">
-              <div class="field-label">Extra money you add to SA each year <span class="val" id="v-sac">$0</span></div>
+              <div class="field-label">Yearly contribution to your SA <span class="val" id="v-sac">$0</span></div>
               <input type="range" id="sac" min="0" max="10000" step="250" value="0">
               <div class="field-note">Same idea &mdash; leave at $0 unless you plan to top up SA yourself.</div>
             </div>
@@ -277,7 +294,7 @@
               <input type="range" id="growth" min="2.5" max="4.5" step="0.1" value="3.5">
               <div class="field-note">The 3 savings goals (BRS/FRS/ERS) go up a little most years. 3.5% a year is a reasonable guess.</div>
             </div>
-            <div class="field-note">Interest is fixed at what CPF guarantees: <strong>2.5%/yr on OA</strong>, <strong>4%/yr on SA and your Retirement Account</strong>. These don't change.</div>
+            <div class="field-note">Interest is fixed at what CPF guarantees: <strong>2.5%/yr on OA</strong>, <strong>4%/yr on SA and your Retirement Account</strong>. On top of that, CPF gives extra interest on your first $60,000 of combined savings (more after 55) &mdash; this tool includes that bonus too, since it helps the most if you have less CPF.</div>
           </div>
           <div>
             <h3>When to start getting paid</h3>
@@ -301,9 +318,9 @@
           <div>
             <span class="kicker" style="margin-bottom:6px">For comparison: the 3 CPF goals at 55</span>
             <div class="goals-row">
-              <div class="goal-tile"><div class="goal-label">Basic (BRS)</div><div class="goal-value" id="t-brs55">&mdash;</div></div>
-              <div class="goal-tile"><div class="goal-label">Full (FRS)</div><div class="goal-value" id="t-frs55">&mdash;</div></div>
-              <div class="goal-tile"><div class="goal-label">Enhanced (ERS)</div><div class="goal-value" id="t-ers55">&mdash;</div></div>
+              <div class="goal-tile"><div class="goal-label">Basic Retirement<br>Sum (BRS)</div><div class="goal-value" id="t-brs55">&mdash;</div></div>
+              <div class="goal-tile"><div class="goal-label">Full Retirement<br>Sum (FRS)</div><div class="goal-value" id="t-frs55">&mdash;</div></div>
+              <div class="goal-tile"><div class="goal-label">Enhanced Retirement<br>Sum (ERS)</div><div class="goal-value" id="t-ers55">&mdash;</div></div>
             </div>
             <div class="chart-title" id="hdg-55" style="margin-top:20px">What you'll likely have by 55</div>
             <div class="chart-sub" id="sub-55">How your OA and SA come together into one account.</div>
@@ -327,9 +344,9 @@
           <div>
             <span class="kicker" style="margin-bottom:6px">For comparison: the 3 CPF goals at 65</span>
             <div class="goals-row">
-              <div class="goal-tile"><div class="goal-label">Basic (BRS)</div><div class="goal-value" id="t-brs65">&mdash;</div></div>
-              <div class="goal-tile"><div class="goal-label">Full (FRS)</div><div class="goal-value" id="t-frs65">&mdash;</div></div>
-              <div class="goal-tile"><div class="goal-label">Enhanced (ERS)</div><div class="goal-value" id="t-ers65">&mdash;</div></div>
+              <div class="goal-tile"><div class="goal-label">Basic Retirement<br>Sum (BRS)</div><div class="goal-value" id="t-brs65">&mdash;</div></div>
+              <div class="goal-tile"><div class="goal-label">Full Retirement<br>Sum (FRS)</div><div class="goal-value" id="t-frs65">&mdash;</div></div>
+              <div class="goal-tile"><div class="goal-label">Enhanced Retirement<br>Sum (ERS)</div><div class="goal-value" id="t-ers65">&mdash;</div></div>
             </div>
             <div class="chart-title" id="hdg-65" style="margin-top:20px">What you'll likely have at 65</div>
             <div class="chart-sub" id="sub-65">Your own projected savings, carried forward from 55.</div>
@@ -389,7 +406,7 @@
       <p class="footnote">For planning discussion only &mdash; not financial advice, and not a CPF Board product.</p>
       <details class="footnote">
         <summary>How we worked this out</summary>
-        <p>Under 55, this model transfers SA first, then OA, up to that year's projected Full Retirement Sum (FRS) to form your Retirement Account (RA); any leftover stays in OA. At 55 or older, CPF has already done that transfer for you, so the RA balance you enter is used directly instead. If &ldquo;Aim for a bigger goal?&rdquo; is on, leftover OA is used first (at 55, or immediately if you're already 55+), then the model rechecks the gap each later year against that year's rising Enhanced Retirement Sum (ERS) goal. Contribution growth uses the single annual OA/SA amounts you set, held flat in today's dollars &mdash; it does not model CPF's age-banded contribution or allocation-rate tables. The monthly payout is estimated by scaling your projected RA against the CPF Board's own 2026-cohort Standard Plan examples at the Basic, Full and Enhanced Retirement Sum levels ($950 / $1,780 / $3,440 respectively), interpolated in between. Deferring past 65 assumes a 7%-per-year compounding increase, consistent with CPF's published deferral bonus; ages 63&ndash;64 are a mirrored extrapolation, since CPF LIFE payouts officially start from 65. Basic and Escalating plan figures apply a rough illustrative adjustment (Escalating starts ~20% lower and grows 2%/yr; Basic starts ~10% lower) since CPF Board does not publish an exact plan-to-plan formula &mdash; use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a> to compare real payout amounts for your plan choice. Reference anchors: CPF Board's published 2026 Retirement Sums and Standard Plan payout examples.</p>
+        <p>Under 55, this model transfers SA first, then OA, up to that year's projected Full Retirement Sum (FRS) to form your Retirement Account (RA); any leftover stays in OA. At 55 or older, CPF has already done that transfer for you, so the RA balance you enter is used directly instead. If &ldquo;Aim for a bigger goal?&rdquo; is on, leftover OA is used first (at 55, or immediately if you're already 55+), then the model rechecks the gap each later year against that year's rising Enhanced Retirement Sum (ERS) goal. On top of the guaranteed 2.5%/4% floor rates, CPF also pays extra interest on smaller balances &mdash; an extra 1%/yr on the first $60,000 of combined OA and SA (or RA) savings, and a further 1%/yr on the first $30,000 once you're 55 or older &mdash; and this model includes that bonus (it ignores your MediSave balance when working out the $60,000 cap, which can very slightly overstate the bonus). Contribution growth uses the single annual OA/SA amounts you set, held flat in today's dollars &mdash; it does not model CPF's age-banded contribution or allocation-rate tables. The monthly payout is estimated by scaling your projected RA-at-65 against CPF Board's own published reference points &mdash; the RA balances members following the Basic, Full and Enhanced Retirement Sum path are projected to hold at 65, and the matching 2026-cohort Standard Plan payout examples at each ($950 / $1,780 / $3,440, among other published points) &mdash; interpolated in between. Deferring past 65 assumes a 7%-per-year compounding increase, consistent with CPF's published deferral bonus; ages 63&ndash;64 are a mirrored extrapolation, since CPF LIFE payouts officially start from 65. Basic and Escalating plan figures apply a rough illustrative adjustment (Escalating starts ~20% lower and grows 2%/yr; Basic starts ~10% lower) since CPF Board does not publish an exact plan-to-plan formula &mdash; use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a> to compare real payout amounts for your plan choice. Reference anchors: CPF Board's published 2026 Retirement Sums and Standard Plan payout examples.</p>
       </details>
     </div>
   </section>
