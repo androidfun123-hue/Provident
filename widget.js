@@ -61,6 +61,9 @@
                                                                                                        #pfp-widget-teaser:hover { transform: translateY(-1px); }
                                                                                                        #pfp-widget-teaser-close {
                                                                                                              color: #99a; font-size: 15px; line-height: 1; cursor: pointer; flex-shrink: 0;
+                                                                                                             display: flex; align-items: center; justify-content: center;
+                                                                                                             width: 32px; height: 32px; margin: -8px -8px -8px 0;
+                                                                                                             -webkit-tap-highlight-color: transparent;
                                                                                                        }
                                                                                                        @keyframes pfp-teaser-in {
                                                                                                              from { opacity: 0; transform: translateY(6px); }
@@ -392,15 +395,22 @@
              const teaser = document.createElement("div");
              teaser.id = "pfp-widget-teaser";
              teaser.innerHTML = `<span>${TEASER_TEXT}</span><span id="pfp-widget-teaser-close">&times;</span>`;
-             teaser.onclick = (e) => {
-                       if (e.target && e.target.id === "pfp-widget-teaser-close") {
-                                   dismissTeaser();
-                                   return;
-                       }
+             teaser.onclick = () => {
                        dismissTeaser();
                        openWidget();
              };
              document.body.appendChild(teaser);
+             // Give the close "x" its own handler with stopPropagation, rather
+             // than relying on the parent's onclick to sniff e.target — on a
+             // small touch target, a near-miss tap was landing on the parent
+             // and opening the chat instead of dismissing the teaser.
+             const closeBtn = document.getElementById("pfp-widget-teaser-close");
+             if (closeBtn) {
+                       closeBtn.addEventListener("click", (e) => {
+                                 e.stopPropagation();
+                                 dismissTeaser();
+                       });
+             }
    }
 
    function buildDOM() {
