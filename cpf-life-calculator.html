@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CPF LIFE Retirement Calculator | Provident Financial Planning</title>
+<meta name="description" content="Free CPF LIFE retirement calculator: project your Retirement Account to age 55 and 65, check it against the Enhanced Retirement Sum, and estimate your monthly CPF LIFE payout under the Standard, Basic and Escalating plans.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f2a4a;
+    --navy-2: #173a63;
+    --green: #1f9d6b;
+    --green-soft: #e7f5ee;
+    --ink: #1c2530;
+    --muted: #5b6878;
+    --line: #e3e8ee;
+    --bg: #ffffff;
+    --bg-alt: #f6f8fb;
+    --radius: 14px;
+    --amber: #92620a;
+    --amber-bg: #fdf3e0;
+    --amber-line: #f0dcb0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--navy); letter-spacing: -.01em; }
+  .brand small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+  .nav ul { display: flex; gap: 26px; list-style: none; font-size: 15px; font-weight: 500; color: var(--muted); }
+  .nav ul a:hover { color: var(--navy); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 15px; border: 1.5px solid transparent; cursor: pointer; transition: .15s; }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: #188459; }
+  .nav .btn { padding: 9px 18px; font-size: 14px; }
+  .calc-hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%); color: #fff; padding: 56px 0; }
+  .calc-hero .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #8fe0bb; margin-bottom: 14px; }
+  .calc-hero h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; letter-spacing: -.02em; max-width: 760px; margin-bottom: 14px; }
+  .calc-hero p { font-size: 17px; color: #c9d6e6; max-width: 680px; }
+  section { padding: 48px 0 88px; }
+  .kicker { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; display: block; }
+  .disclaimer-box { background: var(--amber-bg); border: 1px solid var(--amber-line); color: var(--amber); border-radius: var(--radius); padding: 18px 22px; font-size: 14px; line-height: 1.6; margin-bottom: 32px; }
+  .disclaimer-box strong { color: var(--amber); }
+  .disclaimer-box a { text-decoration: underline; font-weight: 600; }
+  .calc-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .input-card { position: sticky; top: 88px; display: grid; gap: 26px; }
+  .input-card h3 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); margin-bottom: 4px; }
+  .field { margin-top: 14px; }
+  .field:first-of-type { margin-top: 0; }
+  .field-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: .01em; }
+  .field-label span.val { font-weight: 700; color: var(--navy); font-size: 14px; }
+  .field input[type=range] { width: 100%; accent-color: var(--green); height: 4px; }
+  .field-note { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .num-input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; font-size: 14px; font-family: inherit; color: var(--ink); }
+  .num-input:disabled { background: var(--bg-alt); color: var(--muted); }
+  .pillgroup { display: flex; gap: 6px; background: var(--bg-alt); padding: 4px; border-radius: 10px; }
+  .pillgroup button { flex: 1; border: none; background: transparent; padding: 9px 8px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit; }
+  .pillgroup button.active { background: var(--navy); color: #fff; }
+  .results { display: grid; gap: 20px; }
+  .tile-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .tile { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .tile.hl { background: var(--green-soft); border-color: #bfe6d3; }
+  .tile-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .tile-value { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .tile-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .gap-msg { border-radius: 12px; padding: 16px 20px; font-size: 14px; border: 1px solid var(--line); }
+  .gap-msg.ok { background: var(--green-soft); border-color: #bfe6d3; }
+  .gap-msg.warn { background: var(--amber-bg); border-color: var(--amber-line); }
+  .gap-msg strong { display: block; margin-bottom: 4px; color: var(--navy); font-size: 15px; }
+  .payout-hero { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .payout-hero .amt { font-size: 42px; font-weight: 800; color: var(--navy); letter-spacing: -.02em; }
+  .payout-hero .per { color: var(--muted); font-size: 15px; }
+  .payout-meta { display: flex; gap: 32px; margin-top: 14px; flex-wrap: wrap; }
+  .payout-meta div { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .payout-meta strong { display: block; font-size: 17px; font-weight: 700; color: var(--navy); text-transform: none; letter-spacing: 0; margin-top: 4px; }
+  .chart-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .chart-sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  table.payout-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.payout-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  table.payout-table td { padding: 10px 10px; border-bottom: 1px solid var(--line); color: var(--ink); }
+  table.payout-table tr.selected td { background: var(--green-soft); font-weight: 700; color: var(--navy); }
+  table.payout-table td.num, table.payout-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .cta-panel { background: var(--navy); color: #fff; border-radius: 20px; padding: 36px 40px; margin-top: 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .cta-panel h3 { font-size: 21px; margin-bottom: 6px; }
+  .cta-panel p { color: #c9d6e6; font-size: 15px; max-width: 480px; }
+  .footnote { font-size: 12.5px; color: var(--muted); line-height: 1.7; margin-top: 32px; }
+  .footnote a { text-decoration: underline; }
+  footer { background: var(--navy); color: #9fb0c5; padding: 40px 0; font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  footer .brand { color: #fff; }
+  .disclaimer { max-width: 620px; font-size: 13px; line-height: 1.6; }
+  @media (max-width: 980px) {
+    .calc-grid { grid-template-columns: 1fr; }
+    .input-card { position: static; }
+    .tile-row { grid-template-columns: repeat(2, 1fr); }
+    .nav ul { display: none; }
+  }
+  @media (max-width: 560px) {
+    section { padding: 36px 0 60px; }
+    .calc-hero { padding: 40px 0; }
+    .tile-row { grid-template-columns: 1fr 1fr; }
+    .cta-panel { padding: 28px; }
+    .brand small { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="index.html#top" class="brand" aria-label="Provident Financial Planning home">
+      <img src="assets/logo-icon.png" width="36" height="43" alt="" style="display:block" />
+      <span>Provident Financial Planning<small>General &amp; Life Insurance · Singapore</small></span>
+    </a>
+    <ul>
+      <li><a href="index.html#adviser">Smart Adviser</a></li>
+      <li><a href="index.html#services">Coverage</a></li>
+      <li><a href="cpf-life-calculator.html">CPF LIFE Calculator</a></li>
+      <li><a href="index.html#why">Why us</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <a href="index.html#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Get a quote</a>
+  </div>
+</header>
+<main>
+  <section class="calc-hero">
+    <div class="wrap">
+      <span class="eyebrow">Free planning tool</span>
+      <h1>CPF LIFE Retirement Calculator</h1>
+      <p>Key in your age and your current OA and SA balances. This projects them forward to see whether your Retirement Account reaches the Enhanced Retirement Sum by 65 &mdash; and estimates your monthly CPF LIFE payout.</p>
+    </div>
+  </section>
+  <section>
+    <div class="wrap">
+      <div class="disclaimer-box">
+        <strong>A planning illustration, not a CPF Board figure.</strong> This tool is built by Provident Financial Planning for general education and is not affiliated with, endorsed by, or a product of the CPF Board. It uses simplified assumptions (a single blended contribution and interest rate, rather than CPF's full age-banded contribution and allocation tables) and rough, illustrative adjustments for the Basic and Escalating plans, since CPF Board does not publish those as a simple formula. Your actual CPF LIFE payout depends on prevailing interest rates, your gender, cohort mortality tables and your exact Retirement Account balance at your first payout &mdash; none of which this tool can replicate. Always confirm your real numbers with the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a>, and this is not financial advice.
+      </div>
+
+      <div class="calc-grid">
+        <div class="input-card card">
+          <div>
+            <h3>Your profile</h3>
+            <div class="field">
+              <div class="field-label">Current age <span class="val" id="v-age">35</span></div>
+              <input type="range" id="age" min="21" max="54" step="1" value="35">
+            </div>
+            <div class="field">
+              <div class="field-label">Current OA balance</div>
+              <input type="text" inputmode="numeric" class="num-input" id="oa" value="40,000">
+            </div>
+            <div class="field">
+              <div class="field-label">Current SA balance</div>
+              <input type="text" inputmode="numeric" class="num-input" id="sa" value="30,000">
+            </div>
+            <div class="field">
+              <div class="field-label">Current MA balance</div>
+              <input type="text" inputmode="numeric" class="num-input" id="ma" value="20,000" disabled>
+              <div class="field-note">Tracked for completeness only &mdash; MA can't be used to fund CPF LIFE, so it doesn't affect the numbers below.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">Est. annual OA contribution <span class="val" id="v-oac">$10,000</span></div>
+              <input type="range" id="oac" min="0" max="25000" step="500" value="10000">
+              <div class="field-note">Combined employer + employee CPF flowing into OA each year. Check your CPF statement for your own split.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">Est. annual SA contribution <span class="val" id="v-sac">$3,000</span></div>
+              <input type="range" id="sac" min="0" max="10000" step="250" value="3000">
+            </div>
+          </div>
+          <div>
+            <h3>Growth &amp; interest assumptions</h3>
+            <div class="field">
+              <div class="field-label">BRS / FRS / ERS growth <span class="val" id="v-growth">3.5%/yr</span></div>
+              <input type="range" id="growth" min="2.5" max="4.5" step="0.1" value="3.5">
+              <div class="field-note">Retirement sums rose ~3.5%/yr on average in recent years. Try 2.5&ndash;4.5% to stress-test.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">OA interest <span class="val" id="v-oarate">2.5%/yr</span></div>
+              <input type="range" id="oarate" min="2.5" max="4" step="0.1" value="2.5">
+              <div class="field-note">OA floor is 2.5%. Extra interest on the first combined $60k is not separately modelled.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">SA / RA interest <span class="val" id="v-sarate">4.0%/yr</span></div>
+              <input type="range" id="sarate" min="4" max="5" step="0.1" value="4">
+              <div class="field-note">SA and RA share the 4% floor. Extra interest tiers for 55+ are not separately modelled, so this understates real returns a little.</div>
+            </div>
+          </div>
+          <div>
+            <h3>Payout settings</h3>
+            <div class="field">
+              <div class="field-label">Payout start age <span class="val" id="v-payoutage">65</span></div>
+              <input type="range" id="payoutage" min="63" max="70" step="1" value="65">
+              <div class="field-note" id="payoutage-note">Age 65 &mdash; the earliest official CPF LIFE start, no deferral adjustment.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">CPF LIFE plan</div>
+              <div class="pillgroup" id="plan-group">
+                <button data-plan="standard" class="active">Standard</button>
+                <button data-plan="basic">Basic</button>
+                <button data-plan="escalating">Escalating</button>
+              </div>
+              <div class="field-note" id="plan-note">Level payouts for life. Higher bequest to beneficiaries than Escalating, lower than Basic.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">Top up OA to ERS from 55?</div>
+              <div class="pillgroup" id="topup-group">
+                <button data-topup="off" class="active">Off</button>
+                <button data-topup="on">On</button>
+              </div>
+              <div class="field-note">On uses any available OA to close the gap to that year's ERS ceiling as soon as you turn 55.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results">
+          <div>
+            <div class="chart-title">Your Retirement Account at 55, projected</div>
+            <div class="tile-row" id="tiles-55">
+              <div class="tile"><div class="tile-label">Projected FRS at 55</div><div class="tile-value" id="t-frs55">&mdash;</div><div class="tile-sub" id="t-frs55-sub"></div></div>
+              <div class="tile hl"><div class="tile-label">Your RA at 55</div><div class="tile-value" id="t-ra55">&mdash;</div><div class="tile-sub" id="t-ra55-sub"></div></div>
+              <div class="tile"><div class="tile-label">OA left after transfer</div><div class="tile-value" id="t-oa55">&mdash;</div><div class="tile-sub">Stays liquid in your OA, still earning interest</div></div>
+              <div class="tile"><div class="tile-label">Shortfall to ERS at 55</div><div class="tile-value" id="t-gap55">&mdash;</div><div class="tile-sub" id="t-gap55-sub"></div></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="chart-title">Will you reach ERS by 65?</div>
+            <div class="chart-sub">ERS keeps rising every year &mdash; this checks your RA against the ceiling in the year you turn 65.</div>
+            <div class="tile-row" id="tiles-65">
+              <div class="tile"><div class="tile-label">ERS ceiling at 65</div><div class="tile-value" id="t-ers65">&mdash;</div></div>
+              <div class="tile hl"><div class="tile-label">Your RA at 65</div><div class="tile-value" id="t-ra65">&mdash;</div></div>
+              <div class="tile"><div class="tile-label">Your OA at 65</div><div class="tile-value" id="t-oa65">&mdash;</div></div>
+              <div class="tile"><div class="tile-label">Gap to ERS</div><div class="tile-value" id="t-gapers">&mdash;</div></div>
+            </div>
+            <div class="gap-msg" id="gap-msg" style="margin-top:14px"></div>
+          </div>
+
+          <div class="card">
+            <div class="chart-title">Estimated monthly CPF LIFE payout</div>
+            <div class="payout-hero">
+              <div class="amt" id="t-payout">$0</div>
+              <div class="per">/mo from age <span id="t-payoutage-label">65</span></div>
+            </div>
+            <div class="payout-meta">
+              <div>RA balance at payout age<strong id="t-ra-payoutage">&mdash;</strong></div>
+              <div>vs. age-65 Standard<strong id="t-vs65">&mdash;</strong></div>
+              <div>Total to age 90<strong id="t-total90">&mdash;</strong></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="chart-title">Balance projection to payout age</div>
+            <div class="chart-sub">RA (or combined OA+SA pre-55) vs. the OA left over after 55, against the rising ERS ceiling.</div>
+            <svg id="chart-balance" viewBox="0 0 640 260" style="width:100%;height:auto"></svg>
+          </div>
+
+          <div class="card">
+            <div class="chart-title">Monthly payout by start age</div>
+            <div class="chart-sub">Same projected balance and plan, ages 63&ndash;70. The filled marker is your current selection.</div>
+            <svg id="chart-payout" viewBox="0 0 640 200" style="width:100%;height:auto"></svg>
+          </div>
+
+          <div class="card">
+            <div class="chart-title">Payout breakdown, ages 63&ndash;70</div>
+            <table class="payout-table">
+              <thead><tr><th>Start age</th><th class="num">Monthly payout</th><th class="num">vs. age 65</th><th class="num">Total to age 90</th></tr></thead>
+              <tbody id="payout-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-panel">
+        <div>
+          <h3>Want a real plan, not just a projection?</h3>
+          <p>Our Smart Insurance Adviser can walk through your retirement income options &mdash; CPF LIFE and beyond &mdash; in a couple of minutes.</p>
+        </div>
+        <a href="index.html#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Chat with our Smart Insurance Adviser</a>
+      </div>
+
+      <p class="footnote">For planning discussion only &mdash; not financial advice, and not a CPF Board product. At 55, this model transfers SA first, then OA, up to that year's projected FRS to form your RA; any leftover stays in OA. If &ldquo;Top up OA to ERS from 55&rdquo; is on, leftover OA is used first at 55, then the model rechecks the gap each later year against that year's rising ERS ceiling. Contribution growth uses the single annual OA/SA contribution amounts you set, held flat in today's dollars &mdash; it does not model CPF's age-banded contribution or allocation-rate tables. The monthly payout is estimated by scaling your projected RA against the CPF Board's own 2026-cohort Standard Plan examples at the Basic, Full and Enhanced Retirement Sum levels ($950 / $1,780 / $3,440 respectively), interpolated in between. Deferring past 65 assumes a 7%-per-year compounding increase, consistent with CPF's published deferral bonus; ages 63&ndash;64 (marked with the table's earlier rows) are a mirrored extrapolation, since CPF LIFE payouts officially start from 65. Basic and Escalating plan figures apply a rough illustrative adjustment (Escalating starts ~20% lower and grows 2%/yr; Basic starts ~10% lower) since CPF Board does not publish an exact plan-to-plan formula &mdash; use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a> to compare real payout amounts for your plan choice. Reference anchors: CPF Board's published 2026 Retirement Sums and Standard Plan payout examples.</p>
+    </div>
+  </section>
+</main>
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="brand" style="margin-bottom:10px">Provident Financial Planning Pte Ltd</div>
+      <p class="disclaimer">The information on this website is general and does not take into account your specific objectives, financial situation or needs. Policy terms, conditions and exclusions apply. Please speak with us before making any decision.</p>
+    </div>
+    <div>&copy; <span id="yr"></span> Provident Financial Planning Pte Ltd</div>
+  </div>
+</footer>
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+<script src="cpf-life-calculator.js"></script>
+<script src="https://ai.providentfpsg.com/widget.js" defer></script>
+</body>
+</html>
