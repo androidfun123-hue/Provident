@@ -242,10 +242,14 @@
              input.setAttribute("enterkeyhint", "send");
              input.setAttribute("autocomplete", "off");
              input.addEventListener("focus", () => {
+                       if (isMobilePanel()) lockPageZoom();
                        // iOS keyboard animates in over ~250-300ms; re-sync after it
                        // settles so the input + latest message stay in view.
                        setTimeout(syncPanelToViewport, 50);
                        setTimeout(syncPanelToViewport, 350);
+             });
+             input.addEventListener("blur", () => {
+                       unlockPageZoom();
              });
 
           const sendBtn = document.createElement("button");
@@ -273,6 +277,29 @@
 
    function isMobilePanel() {
              return window.matchMedia("(max-width: 640px), (max-height: 480px)").matches;
+   }
+
+   // iOS Safari can still auto-zoom the whole page when a form field is
+   // focused inside a repositioned fixed-position panel like ours, even
+   // with a 16px font-size on the input. Temporarily pin the page's zoom
+   // level while the widget's input is focused (and restore normal
+   // pinch-zoom on blur, so we don't disable accessibility zoom globally).
+   let savedViewportContent = null;
+
+   function lockPageZoom() {
+             const meta = document.querySelector('meta[name="viewport"]');
+             if (!meta) return;
+             if (savedViewportContent === null) savedViewportContent = meta.getAttribute("content") || "";
+             meta.setAttribute(
+                       "content",
+                       "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+             );
+   }
+
+   function unlockPageZoom() {
+             const meta = document.querySelector('meta[name="viewport"]');
+             if (!meta || savedViewportContent === null) return;
+             meta.setAttribute("content", savedViewportContent);
    }
 
    function lockBodyScroll() {
@@ -351,6 +378,7 @@
              document.getElementById("pfp-widget-panel").classList.remove("open");
              stopViewportTracking();
              unlockBodyScroll();
+             unlockPageZoom();
    }
 
    function dismissTeaser() {
