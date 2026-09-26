@@ -108,6 +108,9 @@
   var EXTRA_INTEREST_RATE = 0.01;
   var EXTRA_INTEREST_55_BONUS_CAP = 30000;
   var EXTRA_INTEREST_55_BONUS_RATE = 0.01;
+  // Assumed yearly rise in the Retirement Sums beyond CPF's published
+  // schedule (2027).
+  var GOAL_GROWTH = 0.035;
   var DEFERRAL_RATE = 0.07;
   var ESCALATING_GROWTH = 0.02;
   var PLAN_FACTORS = { standard: 1, basic: 0.9, escalating: 0.8 };
@@ -137,12 +140,14 @@
   // salaried working professional.
   var TEMPLATES = {
     freelancer: { age: 35, oa: 8000, sa: 4000, ma: 0, oac: 0, sac: 0 },
-    professional: { age: 35, oa: 52000, sa: 30000, ma: 25000, oac: 7000, sac: 2000 },
-    midcareer: { age: 45, oa: 110000, sa: 75000, ma: 45000, oac: 8000, sac: 3000 },
+    // Contributions: 2026 CPF allocation rates on an illustrative salary
+    // (age 35: 23% OA / 6% SA of $5,000; age 45: 21% / 7% of $6,500).
+    professional: { age: 35, oa: 52000, sa: 30000, ma: 25000, oac: 14000, sac: 3500 },
+    midcareer: { age: 45, oa: 110000, sa: 75000, ma: 45000, oac: 16500, sac: 5500 },
     near55: { age: 58, oa: 20000, sa: 160000, ma: 60000, oac: 0, sac: 0 },
   };
 
-  var state = { plan: "standard", topup: false };
+  var state = { plan: "standard" };
 
   function $(id) {
     return document.getElementById(id);
@@ -323,11 +328,11 @@
       ma: parseNum($("ma").value),
       oac: Number($("oac").value),
       sac: Number($("sac").value),
-      growth: Number($("growth").value) / 100,
+      growth: GOAL_GROWTH,
       oarate: OA_RATE,
       sarate: SA_RATE,
       payoutAge: Number($("payoutage").value),
-      topup: state.topup,
+      topup: false,
     };
   }
 
@@ -335,7 +340,6 @@
     $("v-age").textContent = inputs.age;
     $("v-oac").textContent = "$" + inputs.oac.toLocaleString("en-US");
     $("v-sac").textContent = "$" + inputs.sac.toLocaleString("en-US");
-    $("v-growth").textContent = (inputs.growth * 100).toFixed(1) + "%/yr";
     $("v-payoutage").textContent = inputs.payoutAge;
   }
 
@@ -856,7 +860,7 @@
   }
 
   function init() {
-    ["age", "oac", "sac", "growth", "payoutage"].forEach(function (id) {
+    ["age", "oac", "sac", "payoutage"].forEach(function (id) {
       $(id).addEventListener("input", recalc);
     });
 
@@ -876,16 +880,11 @@
     });
     $("plan-note").textContent = PLAN_NOTES[state.plan];
 
-    setupPillGroup("topup-group", "data-topup", function (topup) {
-      state.topup = topup === "on";
-      recalc();
-    });
-
     setupPillGroup("template-group", "data-template", function (key) {
       applyTemplate(key);
     });
 
-    var nowSums = retirementSumsForYear(CURRENT_YEAR, 0.035);
+    var nowSums = retirementSumsForYear(CURRENT_YEAR, GOAL_GROWTH);
     $("goal-brs-now").textContent = fmtMoney(nowSums.brs);
     $("goal-frs-now").textContent = fmtMoney(nowSums.frs);
     $("goal-ers-now").textContent = fmtMoney(nowSums.ers);

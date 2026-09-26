@@ -69,7 +69,7 @@
   .disclaimer-box a { text-decoration: underline; font-weight: 600; }
   .calc-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
-  .input-card { position: sticky; top: 88px; display: grid; gap: 26px; }
+  .input-card { display: grid; gap: 26px; }
   .input-card h3 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); margin-bottom: 4px; }
   .field { margin-top: 14px; }
   .field:first-of-type { margin-top: 0; }
@@ -132,16 +132,13 @@
   .step-heading h3 { margin-bottom: 0; }
   .step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
   .quickstart-box { background: var(--green-soft); border: 1px solid #bfe6d3; border-radius: var(--radius); padding: 18px; }
-  .terms-details, .more-options, .card-details { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+  .terms-details, .card-details { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
   .terms-details { margin-bottom: 28px; }
-  .terms-details > summary, .more-options > summary, .card-details > summary { cursor: pointer; list-style: none; padding: 14px 20px; font-weight: 600; font-size: 14.5px; color: var(--navy); display: flex; justify-content: space-between; align-items: center; }
-  .terms-details > summary::-webkit-details-marker, .more-options > summary::-webkit-details-marker, .card-details > summary::-webkit-details-marker, .card-collapsible > summary::-webkit-details-marker { display: none; }
-  .terms-details > summary::after, .more-options > summary::after, .card-details > summary::after, .card-collapsible > summary::after { content: "+"; font-size: 18px; font-weight: 500; color: var(--muted); margin-left: 12px; }
-  .terms-details[open] > summary::after, .more-options[open] > summary::after, .card-details[open] > summary::after, .card-collapsible[open] > summary::after { content: "\2212"; }
+  .terms-details > summary, .card-details > summary { cursor: pointer; list-style: none; padding: 14px 20px; font-weight: 600; font-size: 14.5px; color: var(--navy); display: flex; justify-content: space-between; align-items: center; }
+  .terms-details > summary::-webkit-details-marker, .card-details > summary::-webkit-details-marker, .card-collapsible > summary::-webkit-details-marker { display: none; }
+  .terms-details > summary::after, .card-details > summary::after, .card-collapsible > summary::after { content: "+"; font-size: 18px; font-weight: 500; color: var(--muted); margin-left: 12px; }
+  .terms-details[open] > summary::after, .card-details[open] > summary::after, .card-collapsible[open] > summary::after { content: "\2212"; }
   .terms-details .terms-box { padding: 0 20px 20px; margin-bottom: 0; }
-  .more-options { border-radius: 10px; }
-  .more-options > summary { padding: 12px 14px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
-  .more-options .field { margin: 0 14px 16px; }
   .card-details { border: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 14px; }
   .card-details > summary { padding: 12px 0 4px; font-size: 13.5px; }
   .card-collapsible > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; position: relative; padding-right: 24px; }
@@ -254,6 +251,7 @@
             <div class="terms-row"><span class="term-label">Enhanced Retirement Sum (ERS)</span><span class="term-val" id="goal-ers-now">$440,800</span></div>
             <div class="terms-note">BRS already gets you a monthly payout for life. FRS and ERS mean a bigger payout.</div>
             <div class="terms-note" id="goal-year-note" style="margin-top:8px"></div>
+            <div class="terms-note" style="margin-top:8px"><strong>Interest used:</strong> 2.5% a year on OA and 4% on SA/RA (CPF's minimum rates, guaranteed until end-2027), plus extra interest: +1% on your first $60,000 (only $20,000 of it can be OA), or from age 55, +2% on the first $30,000 and +1% on the next $30,000.</div>
           </div>
           <div class="terms-card">
             <h4>3 payout plans</h4>
@@ -300,41 +298,37 @@
               <div class="field-note">For medical bills &mdash; doesn't affect your results.</div>
             </div>
             <div class="field">
-              <div class="field-label">Extra yearly top-up to OA <span class="val" id="v-oac">$0</span></div>
+              <div class="field-label">Yearly OA contributions <span class="val" id="v-oac">$0</span></div>
               <input type="range" id="oac" min="0" max="25000" step="500" value="0">
-              <div class="field-note">Leave at $0 unless you top up voluntarily.</div>
+              <div class="field-note">What goes into your OA and SA from your salary each year (your share + your employer's). Check your CPF statement, or leave at $0 if self-employed.</div>
             </div>
             <div class="field" id="sac-field">
-              <div class="field-label">Extra yearly top-up to SA <span class="val" id="v-sac">$0</span></div>
-              <input type="range" id="sac" min="0" max="10000" step="250" value="0">
+              <div class="field-label">Yearly SA contributions <span class="val" id="v-sac">$0</span></div>
+              <input type="range" id="sac" min="0" max="12000" step="250" value="0">
               
             </div>
           </div>
-          <details class="more-options">
-            <summary>More options</summary>
+          <div>
+            <div class="step-heading"><span class="step-num">2</span><h3>When should payouts start?</h3></div>
             <div class="field">
               <div class="field-label">Start payouts at age <span class="val" id="v-payoutage">65</span></div>
               <input type="range" id="payoutage" min="63" max="70" step="1" value="65">
               <div class="field-note" id="payoutage-note">Age 65 &mdash; the standard start age.</div>
             </div>
-            <div class="field">
-              <div class="field-label">Aim for the biggest goal (ERS)?</div>
-              <div class="pillgroup" id="topup-group">
-                <button data-topup="off" class="active">Off</button>
-                <button data-topup="on">On</button>
-              </div>
-              <div class="field-note">On: spare OA money tops up your retirement savings.</div>
+          </div>
+          <div>
+            <div class="step-heading"><span class="step-num">3</span><h3>Choose your payout plan</h3></div>
+            <div class="pillgroup" id="plan-group" style="margin-top:10px">
+              <button data-plan="basic">Basic</button>
+              <button data-plan="standard" class="active">Standard</button>
+              <button data-plan="escalating">Escalating</button>
             </div>
-            <div class="field">
-              <div class="field-label">CPF goals grow by <span class="val" id="v-growth">3.5%/yr</span></div>
-              <input type="range" id="growth" min="2.5" max="4.5" step="0.1" value="3.5">
-              <div class="field-note">Uses CPF's guaranteed interest (2.5% OA, 4% SA/RA) plus extra interest on your first $60,000.</div>
-            </div>
-          </details>
+            <div class="field-note" id="plan-note" style="margin-top:8px"></div>
+          </div>
         </div>
 
         <div class="results">
-          <div class="step-heading"><span class="step-num">2</span><h3>Your results</h3></div>
+          <div class="step-heading"><span class="step-num">4</span><h3>Your results</h3></div>
           <div>
             <span class="kicker" style="margin-bottom:6px">CPF goals at 55</span>
             <div class="goals-row">
@@ -381,16 +375,6 @@
           </div>
 
           <div class="card">
-            <div class="chart-title">Choose your payout plan</div>
-            <div class="pillgroup" id="plan-group">
-              <button data-plan="basic">Basic</button>
-              <button data-plan="standard" class="active">Standard</button>
-              <button data-plan="escalating">Escalating</button>
-            </div>
-            <div class="field-note" id="plan-note" style="margin-top:10px"></div>
-          </div>
-
-          <div class="card">
             <div class="chart-title">Your estimated monthly payout</div>
             <div class="payout-hero">
               <div class="amt" id="t-payout">$0</div>
@@ -405,7 +389,7 @@
 
           <div class="card">
             <div class="chart-title">How your savings grow over time</div>
-            <div class="chart-sub">Green: your savings. Grey: extra OA. Dotted: biggest goal.</div>
+            <div class="chart-sub">Grows at CPF's rates: 2.5% a year on OA, 4% on SA/RA, plus extra interest on your first $60,000.</div>
             <svg id="chart-balance" viewBox="0 0 640 260" style="width:100%;height:auto"></svg>
           </div>
 
@@ -442,7 +426,7 @@
       <p class="footnote">For planning discussion only &mdash; not financial advice, and not a CPF Board product.</p>
       <details class="footnote">
         <summary>How we worked this out</summary>
-        <p>Under 55, this model transfers SA first, then OA, up to that year's projected Full Retirement Sum (FRS) to form your Retirement Account (RA); any leftover stays in OA. At 55 or older, CPF has already done that transfer for you, so the RA balance you enter is used directly instead. If &ldquo;Aim for a bigger goal?&rdquo; is on, leftover OA is used first (at 55, or immediately if you're already 55+), then the model rechecks the gap each later year against that year's rising Enhanced Retirement Sum (ERS) goal. On top of the guaranteed 2.5%/4% floor rates, CPF also pays extra interest on smaller balances &mdash; an extra 1%/yr on the first $60,000 of combined OA and SA (or RA) savings, and a further 1%/yr on the first $30,000 once you're 55 or older &mdash; and this model includes that bonus. Your MediSave (MA) balance is for reference only here &mdash; under CPF's own rules it's last in line for that bonus interest (after OA and SA/RA), so it doesn't change any figure on this page. Contribution growth uses the single annual OA/SA amounts you set, held flat in today's dollars &mdash; it does not model CPF's age-banded contribution or allocation-rate tables. The monthly payout is estimated by scaling your projected RA-at-65 against CPF Board's own published reference points &mdash; the RA balances members following the Basic, Full and Enhanced Retirement Sum path are projected to hold at 65, and the matching 2026-cohort Standard Plan payout examples at each ($950 / $1,780 / $3,440, among other published points) &mdash; interpolated in between. Deferring past 65 assumes a 7%-per-year compounding increase, consistent with CPF's published deferral bonus; ages 63&ndash;64 are a mirrored extrapolation, since CPF LIFE payouts officially start from 65. Basic and Escalating plan figures apply a rough illustrative adjustment (Escalating starts ~20% lower and grows 2%/yr; Basic starts ~10% lower) since CPF Board does not publish an exact plan-to-plan formula &mdash; use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a> to compare real payout amounts for your plan choice. Reference anchors: CPF Board's published 2026 Retirement Sums and Standard Plan payout examples.</p>
+        <p>Under 55, this model transfers SA first, then OA, up to that year's projected Full Retirement Sum (FRS) to form your Retirement Account (RA); any leftover stays in OA. At 55 or older, CPF has already done that transfer for you, so the RA balance you enter is used directly instead. Retirement Sums after 2027 (not yet announced by CPF) are assumed to rise 3.5% a year. Interest uses CPF's floor rates of 2.5% (OA) and 4% (SA/RA), which the Government has guaranteed until 31 December 2027 and this model assumes continue after that. On top of these, CPF also pays extra interest on smaller balances &mdash; an extra 1%/yr on the first $60,000 of combined OA and SA (or RA) savings, and a further 1%/yr on the first $30,000 once you're 55 or older &mdash; and this model includes that bonus. Your MediSave (MA) balance is for reference only here &mdash; under CPF's own rules it's last in line for that bonus interest (after OA and SA/RA), so it doesn't change any figure on this page. Yearly contributions use the OA/SA amounts you set, held flat &mdash; they don't follow CPF's age-banded allocation rates or pay rises. From 55, your SA closes and moves into your RA up to the Full Retirement Sum, with any excess going to your OA. The monthly payout is estimated by scaling your projected RA-at-65 against CPF Board's own published reference points &mdash; the RA balances members following the Basic, Full and Enhanced Retirement Sum path are projected to hold at 65, and the matching 2026-cohort Standard Plan payout examples at each ($950 / $1,780 / $3,440, among other published points) &mdash; interpolated in between. Deferring past 65 assumes a 7%-per-year compounding increase, consistent with CPF's published deferral bonus; ages 63&ndash;64 are a mirrored extrapolation, since CPF LIFE payouts officially start from 65. Basic and Escalating plan figures apply a rough illustrative adjustment (Escalating starts ~20% lower and grows 2%/yr; Basic starts ~10% lower) since CPF Board does not publish an exact plan-to-plan formula &mdash; use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a> to compare real payout amounts for your plan choice. Reference anchors: CPF Board's published 2026 Retirement Sums and Standard Plan payout examples.</p>
       </details>
     </div>
   </section>
