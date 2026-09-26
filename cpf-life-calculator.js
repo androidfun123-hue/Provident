@@ -118,10 +118,10 @@
   // starting point to adjust from, whether they're a freelancer or a
   // salaried working professional.
   var TEMPLATES = {
-    freelancer: { age: 35, oa: 8000, sa: 4000, oac: 0, sac: 0 },
-    professional: { age: 35, oa: 52000, sa: 30000, oac: 7000, sac: 2000 },
-    midcareer: { age: 45, oa: 110000, sa: 75000, oac: 8000, sac: 3000 },
-    near55: { age: 58, oa: 20000, sa: 160000, oac: 0, sac: 0 },
+    freelancer: { age: 35, oa: 8000, sa: 4000, ma: 0, oac: 0, sac: 0 },
+    professional: { age: 35, oa: 52000, sa: 30000, ma: 25000, oac: 7000, sac: 2000 },
+    midcareer: { age: 45, oa: 110000, sa: 75000, ma: 45000, oac: 8000, sac: 3000 },
+    near55: { age: 58, oa: 20000, sa: 160000, ma: 60000, oac: 0, sac: 0 },
   };
 
   var state = { plan: "standard", topup: false };
@@ -302,6 +302,7 @@
       age: Number($("age").value),
       oa: parseNum($("oa").value),
       sa: parseNum($("sa").value),
+      ma: parseNum($("ma").value),
       oac: Number($("oac").value),
       sac: Number($("sac").value),
       growth: Number($("growth").value) / 100,
@@ -359,6 +360,27 @@
       sacField.style.display = "";
       hdg55.textContent = "What you'll likely have by 55";
       sub55.textContent = "How your OA and SA come together into one account.";
+    }
+  }
+
+  // Highlights whichever goal tile (BRS/FRS/ERS) the projected balance has
+  // reached — only the highest one, matching the single "you've reached..."
+  // message shown elsewhere (reaching FRS means BRS is reached too, but only
+  // FRS lights up).
+  function markReachedTiles(suffix, value, brs, frs, ers) {
+    var brsTile = $("tile-brs" + suffix);
+    var frsTile = $("tile-frs" + suffix);
+    var ersTile = $("tile-ers" + suffix);
+    if (!brsTile || !frsTile || !ersTile) return;
+    brsTile.classList.remove("reached");
+    frsTile.classList.remove("reached");
+    ersTile.classList.remove("reached");
+    if (value >= ers) {
+      ersTile.classList.add("reached");
+    } else if (value >= frs) {
+      frsTile.classList.add("reached");
+    } else if (value >= brs) {
+      brsTile.classList.add("reached");
     }
   }
 
@@ -565,6 +587,7 @@
     $("t-brs55").textContent = fmtMoney(sim.brs55);
     $("t-frs55").textContent = fmtMoney(sim.frs55);
     $("t-ers55").textContent = fmtMoney(sim.ers55);
+    markReachedTiles("55", sim.ra55, sim.brs55, sim.frs55, sim.ers55);
 
     // OA + SA -> RA card
     var raRow55 = $("ra-row-55");
@@ -633,6 +656,7 @@
     $("t-frs65").textContent = fmtMoney(frs65);
     $("t-ers65").textContent = fmtMoney(s65.ers);
     $("t-ra65").textContent = fmtMoney(s65.ra);
+    markReachedTiles("65", s65.ra, brs65, frs65, s65.ers);
     $("oa-leftover-line-65").innerHTML =
       s65.oaLeft > 0.5
         ? "Plus " + fmtMoney(s65.oaLeft) + " left over in your OA, still earning interest."
@@ -669,6 +693,7 @@
     $("age").value = String(t.age);
     $("oa").value = t.oa.toLocaleString("en-US");
     $("sa").value = t.sa.toLocaleString("en-US");
+    $("ma").value = t.ma.toLocaleString("en-US");
     $("oac").value = String(t.oac);
     $("sac").value = String(t.sac);
     recalc();
@@ -692,7 +717,7 @@
       $(id).addEventListener("input", recalc);
     });
 
-    ["oa", "sa"].forEach(function (id) {
+    ["oa", "sa", "ma"].forEach(function (id) {
       var input = $(id);
       input.addEventListener("input", recalc);
       input.addEventListener("blur", function () {
@@ -706,6 +731,7 @@
       $("plan-note").textContent = PLAN_NOTES[plan];
       recalc();
     });
+    $("plan-note").textContent = PLAN_NOTES[state.plan];
 
     setupPillGroup("topup-group", "data-topup", function (topup) {
       state.topup = topup === "on";
