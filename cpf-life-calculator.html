@@ -84,6 +84,8 @@
   .tile-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
   .tile-value { font-size: 20px; font-weight: 700; color: var(--navy); }
   .tile-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .brs-note { display: none; margin-top: 14px; background: var(--amber-bg); border: 1px solid var(--amber-line); border-radius: 12px; padding: 14px 18px; font-size: 13.5px; color: var(--ink); line-height: 1.55; }
+  .brs-note strong { color: var(--navy); }
   .gap-msg { border-radius: 12px; padding: 16px 20px; font-size: 14px; border: 1px solid var(--line); }
   .gap-msg.ok { background: var(--green-soft); border-color: #bfe6d3; }
   .gap-msg.warn { background: var(--amber-bg); border-color: var(--amber-line); }
@@ -284,6 +286,7 @@
               <div class="tile"><div class="tile-label" id="tl-oa55">OA left after transfer</div><div class="tile-value" id="t-oa55">&mdash;</div><div class="tile-sub">Stays liquid in your OA, still earning interest</div></div>
               <div class="tile"><div class="tile-label" id="tl-gap55">Shortfall to ERS at 55</div><div class="tile-value" id="t-gap55">&mdash;</div><div class="tile-sub" id="t-gap55-sub"></div></div>
             </div>
+            <div class="brs-note" id="brs-note"></div>
           </div>
 
           <div>

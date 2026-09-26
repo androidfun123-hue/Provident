@@ -115,7 +115,7 @@
     var series = [];
     var a;
     var isPost55 = age >= 55;
-    var frs55 = null, ers55 = null, raBal, oaBal, buildFromAge, ra55, oa55;
+    var frs55 = null, ers55 = null, brs55 = null, raBal, oaBal, buildFromAge, ra55, oa55;
     var referenceAge = isPost55 ? age : 55;
 
     if (!isPost55) {
@@ -128,6 +128,7 @@
 
       frs55 = ANCHORS.frs * Math.pow(1 + growth, 55 - age);
       ers55 = ANCHORS.ers * Math.pow(1 + growth, 55 - age);
+      brs55 = ANCHORS.brs * Math.pow(1 + growth, 55 - age);
       if (sa >= frs55) {
         raBal = frs55;
         oaBal = oa + (sa - frs55);
@@ -150,6 +151,8 @@
       raBal = sa;
       oaBal = oa;
       ers55 = ANCHORS.ers * Math.pow(1 + growth, 0);
+      frs55 = ANCHORS.frs * Math.pow(1 + growth, 0);
+      brs55 = ANCHORS.brs * Math.pow(1 + growth, 0);
       if (topup && raBal < ers55 && oaBal > 0) {
         var t0 = Math.min(oaBal, ers55 - raBal);
         raBal += t0;
@@ -178,6 +181,7 @@
       series: series,
       frs55: frs55,
       ers55: ers55,
+      brs55: brs55,
       ra55: ra55,
       oa55: oa55,
       isPost55: isPost55,
@@ -473,6 +477,35 @@
         gap55 > 0
           ? "To reach the Enhanced Retirement Sum at 55"
           : "You reached the Enhanced Retirement Sum at 55";
+    }
+
+    // BRS indicator — only surfaced when the projected RA falls short of
+    // FRS, since that's the point where "Full Retirement Sum" alone stops
+    // telling the whole story and the lower BRS tier becomes relevant.
+    var brsNote = $("brs-note");
+    if (brsNote) {
+      if (sim.ra55 < sim.frs55 - 0.5) {
+        brsNote.style.display = "block";
+        if (sim.ra55 >= sim.brs55) {
+          brsNote.innerHTML =
+            "<strong>Below Full Retirement Sum:</strong> your projected RA of " +
+            fmtMoney(sim.ra55) +
+            " is short of the " +
+            fmtMoney(sim.frs55) +
+            " Full Retirement Sum (FRS) target, but still above the " +
+            fmtMoney(sim.brs55) +
+            " Basic Retirement Sum (BRS) &mdash; the lowest tier in the glossary above. Your CPF LIFE payout will be scaled down from the Standard-Plan examples shown, roughly in proportion to where your RA sits between BRS and FRS.";
+        } else {
+          brsNote.innerHTML =
+            "<strong>Below Basic Retirement Sum:</strong> your projected RA of " +
+            fmtMoney(sim.ra55) +
+            " doesn't yet reach the " +
+            fmtMoney(sim.brs55) +
+            " Basic Retirement Sum (BRS) &mdash; the lowest of CPF's three Retirement Sum tiers. You can still join CPF LIFE with a smaller RA, but your monthly payout will be scaled down well below the Standard-Plan examples shown here.";
+        }
+      } else {
+        brsNote.style.display = "none";
+      }
     }
 
     // 65 tiles
