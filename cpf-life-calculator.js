@@ -104,13 +104,24 @@
   var DEFERRAL_RATE = 0.07;
   var ESCALATING_GROWTH = 0.02;
   var PLAN_FACTORS = { standard: 1, basic: 0.9, escalating: 0.8 };
+  // Bequest (the amount CPF pays your beneficiaries if you pass away before
+  // your CPF LIFE savings are used up) doesn't have a publicly published
+  // exact formula from CPF Board, unlike the payout table above. This is a
+  // simplified illustration: each plan starts with a different assumed
+  // share of your Retirement Account balance as your own remaining balance
+  // (the rest is pooled to help fund lifelong payouts for everyone in that
+  // plan), which is then projected forward using the same interest-rate
+  // assumption as the rest of this page, minus that plan's own monthly
+  // payout, until it runs out. Basic Plan pools the least (so keeps the
+  // most as a refundable balance); Standard pools the most.
+  var BEQUEST_START_FACTOR = { basic: 1.0, standard: 0.85, escalating: 0.9 };
   var PLAN_NOTES = {
     standard:
-      "Standard Plan (Default): same amount every month, for life. This only changes your monthly payout below — it doesn't change your savings estimate above it.",
+      "Standard Plan (Default): same amount every month, for life. Leaves a moderate bequest (money paid to your beneficiaries) if you pass away before your CPF LIFE savings are fully paid out. This only changes your monthly payout below — it doesn't change your savings estimate above it.",
     basic:
-      "Basic Plan: a smaller monthly amount, but leaves more money behind for your family — modelled here as roughly 10% lower than the Standard Plan. Note: the “Basic Plan” is different from the Basic Retirement Sum (BRS) savings goal — they just share a name.",
+      "Basic Plan: a smaller monthly amount, but leaves more money behind for your family — modelled here as roughly 10% lower than the Standard Plan. Of the 3 plans, this is built to leave the biggest bequest (death benefit) if you pass away early. Note: the “Basic Plan” is different from the Basic Retirement Sum (BRS) savings goal — they just share a name.",
     escalating:
-      "Escalating Plan: starts smaller but grows about 2% a year, to help keep up with rising prices — modelled here as roughly 20% lower than the Standard Plan at the start. This only changes your monthly payout below.",
+      "Escalating Plan: starts smaller but grows about 2% a year, to help keep up with rising prices — modelled here as roughly 20% lower than the Standard Plan at the start. Its bequest starts around the same as the Standard Plan's and shifts over time as your payouts grow. This only changes your monthly payout below.",
   };
 
   // Quick-start example profiles. Illustrative starting points only — not
@@ -554,6 +565,129 @@
     svg.innerHTML = out;
   }
 
+  // Projects each plan's illustrative bequest balance forward, year by
+  // year, from the payout start age until it hits zero (or age 100).
+  // See BEQUEST_START_FACTOR above for the modelling caveat.
+  function bequestSeries(raAtPayoutAge, payoutAge, payout65std, sarate) {
+    var plans = ["basic", "standard", "escalating"];
+    var monthlyRate = Math.pow(1 + sarate, 1 / 12) - 1;
+    var out = {};
+    plans.forEach(function (plan) {
+      var balance = raAtPayoutAge * BEQUEST_START_FACTOR[plan];
+      var monthlyPayout = payoutAtAge(payout65std, PLAN_FACTORS[plan], payoutAge);
+      var points = [{ age: payoutAge, value: Math.max(0, balance) }];
+      var age = payoutAge;
+      var month = 0;
+      while (age < 100 && balance > 0.5) {
+        balance = balance * (1 + monthlyRate) - monthlyPayout;
+        month++;
+        if (plan === "escalating" && month % 12 === 0) monthlyPayout *= 1 + ESCALATING_GROWTH;
+        if (month % 12 === 0) {
+          age++;
+          points.push({ age: age, value: Math.max(0, balance) });
+        }
+      }
+      if (points[points.length - 1].value !== 0) {
+        points.push({ age: age, value: 0 });
+      }
+      out[plan] = points;
+    });
+    return out;
+  }
+
+  function renderBequestChart(bequestData, selectedPlan) {
+    var svg = $("chart-bequest");
+    if (!svg) return;
+    var plans = ["basic", "standard", "escalating"];
+    var W = 640, H = 260, padL = 54, padR = 14, padT = 34, padB = 30;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var allPoints = [];
+    plans.forEach(function (p) {
+      allPoints = allPoints.concat(bequestData[p]);
+    });
+    var minAge = Math.min.apply(
+      null,
+      allPoints.map(function (pt) {
+        return pt.age;
+      })
+    );
+    var maxAge = Math.max.apply(
+      null,
+      allPoints.map(function (pt) {
+        return pt.age;
+      })
+    );
+    var maxVal =
+      Math.max.apply(
+        null,
+        allPoints.map(function (pt) {
+          return pt.value;
+        })
+      ) * 1.08 || 1;
+
+    function x(a) {
+      return padL + ((a - minAge) / (maxAge - minAge || 1)) * innerW;
+    }
+    function y(v) {
+      return padT + innerH - (v / maxVal) * innerH;
+    }
+    function pathFor(points) {
+      return points
+        .map(function (pt, i) {
+          return (i === 0 ? "M" : "L") + x(pt.age).toFixed(1) + "," + y(pt.value).toFixed(1);
+        })
+        .join(" ");
+    }
+
+    var out = "";
+    [0, 0.5, 1].forEach(function (f) {
+      var v = Math.round(maxVal * f);
+      var yy = y(v);
+      out +=
+        '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy +
+        '" stroke="#e3e8ee" stroke-width="1"/>';
+      out +=
+        '<text x="' + (padL - 8) + '" y="' + (yy + 4) + '" font-size="10" fill="#5b6878" text-anchor="end">' +
+        fmtCompact(v) + "</text>";
+    });
+
+    var xTicks = [];
+    for (var a = minAge; a < maxAge; a += 5) xTicks.push(a);
+    xTicks.push(maxAge);
+    xTicks.forEach(function (a) {
+      out +=
+        '<text x="' + x(a).toFixed(1) + '" y="' + (H - 8) + '" font-size="10" fill="#5b6878" text-anchor="middle">' +
+        a + "</text>";
+    });
+
+    var colors = { basic: "#1f9d6b", standard: "#173a63", escalating: "#92620a" };
+    var labels = { basic: "Basic", standard: "Standard", escalating: "Escalating" };
+
+    plans.forEach(function (p) {
+      if (p === selectedPlan) return;
+      out +=
+        '<path d="' + pathFor(bequestData[p]) + '" fill="none" stroke="' + colors[p] +
+        '" stroke-width="1.5" stroke-opacity="0.35"/>';
+    });
+    out +=
+      '<path d="' + pathFor(bequestData[selectedPlan]) + '" fill="none" stroke="' + colors[selectedPlan] +
+      '" stroke-width="2.75"/>';
+
+    var lx = padL;
+    plans.forEach(function (p) {
+      var bold = p === selectedPlan;
+      out +=
+        '<rect x="' + lx + '" y="8" width="14" height="4" fill="' + colors[p] +
+        '" fill-opacity="' + (bold ? 1 : 0.35) + '"/>';
+      out +=
+        '<text x="' + (lx + 20) + '" y="14" font-size="10" fill="' + (bold ? "#1c2530" : "#8b96a3") +
+        '" font-weight="' + (bold ? 700 : 400) + '">' + labels[p] + (bold ? " (selected)" : "") + "</text>";
+      lx += 140;
+    });
+
+    svg.innerHTML = out;
+  }
+
   function recalc() {
     var inputs = getInputs();
 
@@ -685,6 +819,22 @@
     buildTable(payout65std, planFactor, state.plan, inputs.payoutAge);
     renderBalanceChart(series);
     renderPayoutChart(payout65std, planFactor, inputs.payoutAge);
+    renderBequestChart(bequestSeries(raAtPayoutAge, inputs.payoutAge, payout65std, inputs.sarate), state.plan);
+
+    // Exposed so the "Chat now" button on this page can hand the chat
+    // widget a snapshot of what the visitor just worked out here, instead
+    // of them having to repeat their age/numbers to the AI from scratch.
+    window.__cpfChatContext = {
+      source: "cpf-calculator",
+      age: inputs.age,
+      payoutAge: inputs.payoutAge,
+      monthlyPayout: Math.round(selectedPayout),
+      projectedRA65: Math.round(s65.ra),
+      brs65: Math.round(brs65),
+      frs65: Math.round(frs65),
+      belowBRS: s65.ra < brs65 - 0.5,
+      plan: state.plan,
+    };
   }
 
   function applyTemplate(key) {

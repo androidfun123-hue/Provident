@@ -9,6 +9,15 @@
  *
  * Also exposes window.PFPWidget = { open, close } so other elements on
  * the page (e.g. a "Talk to us" button) can open the same chat panel.
+ * PFPWidget.open() optionally takes a context object — e.g. from the CPF
+ * calculator page — which tailors the opening greeting and is sent along
+ * with every chat turn so the AI (and the lead email) knows what the
+ * visitor already worked out for themselves before opening the chat.
+ *
+ * The AI's replies can also suggest a short list of "quick_replies" —
+ * tappable answer options rendered as chips under its message, so the
+ * visitor can answer common questions (which track, yes/no, a rough
+ * timeline) with one tap instead of typing.
  */
 
 (function () {
@@ -19,6 +28,7 @@
 
    	const GREETING =
                 		"Hey there! 👋 I'm Provident's Smart Insurance Adviser — are you looking into insurance for your business or property (general insurance), or for yourself and your family (life & personal insurance)?";
+   const GREETING_QUICK_REPLIES = ["General / business insurance", "Personal & life insurance", "Not sure yet"];
 
    const TEASER_TEXT = "Ask our Smart Insurance Adviser — free, instant, no obligation.";
    const TEASER_DELAY_MS = 4000;
@@ -30,6 +40,30 @@
    let history = [];
         let conversationDone = false;
         let awaitingReply = false;
+   // Optional context passed in via PFPWidget.open(context) when opened
+   // from a page like the CPF calculator -- e.g.
+   // { source: "cpf-calculator", age, monthlyPayout, ... }. Sent along with
+   // every /api/chat request so the AI can tailor its questions (and the
+   // lead email) around what the visitor already told the calculator,
+   // instead of starting from zero.
+   let pageContext = null;
+
+   // Builds the first message shown when the panel opens with an empty
+   // history. Falls back to the generic GREETING when no usable context
+   // was passed in (or the page didn't pass one at all).
+   function buildGreeting(context) {
+             if (context && context.source === "cpf-calculator" && typeof context.monthlyPayout === "number") {
+                       var payoutStr = "$" + Math.round(context.monthlyPayout).toLocaleString("en-US");
+                       var payoutLine = context.belowBRS
+                                 ? "right now you're tracking below the Basic Retirement Sum, with an estimated payout around " + payoutStr + "/month if nothing changes"
+                                 : "you're on track for an estimated CPF LIFE payout of about " + payoutStr + "/month from age " + (context.payoutAge || 65);
+                       return {
+                                 text: "Hey there! 👋 Looks like you were just checking your CPF numbers — based on what you entered, " + payoutLine + ". Want to chat about ways to plan around that, or is there something else on your mind?",
+                                 quickReplies: ["Help me plan around this", "Just exploring for now", "I have a different question"],
+                       };
+             }
+             return { text: GREETING, quickReplies: GREETING_QUICK_REPLIES };
+   }
 
    // ---- Styles (scoped, injected once) ----
    const css = `
@@ -132,7 +166,18 @@
                                                                                                                                                                                                                                                                                                      #pfp-widget-input-area button:disabled {
                                                                                                                                                                                                                                                                                                            background: #9aa8b5; cursor: default;
                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                 `;
+                                                                                                                                                                                                                                                                                                                 .pfp-quick-replies {
+                                                                                                                                                                                                                                                                                                       display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 14px;
+                                                                                                                                                                                                                                                                                                     }
+                                                                                                                                                                                                                                                                                                     .pfp-quick-reply-btn {
+                                                                                                                                                                                                                                                                                                       background: white; color: #1a3a5c; border: 1.5px solid #1a3a5c;
+                                                                                                                                                                                                                                                                                                       border-radius: 999px; padding: 7px 14px; font-size: 13.5px;
+                                                                                                                                                                                                                                                                                                       cursor: pointer; font-family: inherit; line-height: 1.3;
+                                                                                                                                                                                                                                                                                                       transition: background 0.12s ease, color 0.12s ease;
+                                                                                                                                                                                                                                                                                                     }
+                                                                                                                                                                                                                                                                                                     .pfp-quick-reply-btn:hover { background: #1a3a5c; color: white; }
+                                                                                                                                                                                                                                                                                                     .pfp-quick-reply-btn:disabled { opacity: 0.5; cursor: default; }
+                                                                                                                                                                                                                                                                                                     `;
 
    function injectStyles() {
              const style = document.createElement("style");
@@ -173,6 +218,35 @@
              if (el) el.remove();
    }
 
+   function clearQuickReplies() {
+             const el = document.getElementById("pfp-quick-replies");
+             if (el) el.remove();
+   }
+
+   function renderQuickReplies(options) {
+             clearQuickReplies();
+             if (!Array.isArray(options) || options.length === 0) return;
+             const body = document.getElementById("pfp-widget-body");
+             const container = document.createElement("div");
+             container.className = "pfp-quick-replies";
+             container.id = "pfp-quick-replies";
+             options.slice(0, 4).forEach((opt) => {
+                       if (typeof opt !== "string" || !opt.trim()) return;
+                       const btn = document.createElement("button");
+                       btn.type = "button";
+                       btn.className = "pfp-quick-reply-btn";
+                       btn.textContent = opt;
+                       btn.onclick = () => {
+                                 if (awaitingReply || conversationDone) return;
+                                 clearQuickReplies();
+                                 sendMessage(opt);
+                       };
+                       container.appendChild(btn);
+             });
+             body.appendChild(container);
+             body.scrollTop = body.scrollHeight;
+   }
+
    function setInputEnabled(enabled) {
              const input = document.getElementById("pfp-widget-text-input");
              const button = document.getElementById("pfp-widget-send-btn");
@@ -191,6 +265,7 @@
    }
 
    async function sendMessage(userText) {
+             clearQuickReplies();
              history.push({ role: "user", text: userText });
              appendUserMessage(userText);
 
@@ -203,7 +278,7 @@
                          const res = await fetch(API_ENDPOINT, {
                                        method: "POST",
                                        headers: { "Content-Type": "application/json" },
-                                       body: JSON.stringify({ history }),
+                                       body: JSON.stringify({ history, context: pageContext }),
                          });
                          data = await res.json();
                          if (!data || typeof data.reply !== "string") throw new Error("bad response");
@@ -221,6 +296,9 @@
                       endConversationUI();
           } else {
                       setInputEnabled(true);
+                      if (Array.isArray(data.quickReplies) && data.quickReplies.length > 0) {
+                                  renderQuickReplies(data.quickReplies);
+                      }
           }
    }
 
@@ -363,7 +441,8 @@
              }
    }
 
-   function openWidget() {
+   function openWidget(context) {
+             if (context && typeof context === "object") pageContext = context;
              dismissTeaser();
              document.getElementById("pfp-widget-panel").classList.add("open");
              if (isMobilePanel()) {
@@ -371,9 +450,11 @@
                        startViewportTracking();
              }
              if (history.length === 0) {
-                         history.push({ role: "model", text: GREETING });
-                         appendBotMessage(GREETING);
+                         const greeting = buildGreeting(pageContext);
+                         history.push({ role: "model", text: greeting.text });
+                         appendBotMessage(greeting.text);
                          setInputEnabled(true);
+                         if (greeting.quickReplies) renderQuickReplies(greeting.quickReplies);
              }
    }
 

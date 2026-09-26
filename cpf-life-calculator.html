@@ -182,7 +182,7 @@
       <li><a href="index.html#contact">Contact</a></li>
     </ul>
     <button id="nav-toggle" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">&#9776;</button>
-    <a href="index.html#contact" class="btn btn-primary" style="flex-shrink:0" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Get a quote</a>
+    <a href="index.html#contact" class="btn btn-primary" style="flex-shrink:0" onclick="if(window.PFPWidget){window.PFPWidget.open(window.__cpfChatContext);return false;}">Get a quote</a>
     <div id="mobile-menu">
       <ul>
         <li><a href="index.html#adviser">Smart Adviser</a></li>
@@ -225,10 +225,11 @@
         <div class="terms-card">
           <h4>How you get paid</h4>
           <div class="terms-sub">Once your monthly payouts start, you can choose how they're paid out.</div>
-          <div class="terms-row"><span class="term-label">Basic Plan</span><span class="term-val">Smaller amount, more left for family</span></div>
-          <div class="terms-row"><span class="term-label">Standard Plan (Default)</span><span class="term-val">Same amount every month</span></div>
+          <div class="terms-row"><span class="term-label">Basic Plan</span><span class="term-val">Smaller amount, biggest bequest</span></div>
+          <div class="terms-row"><span class="term-label">Standard Plan (Default)</span><span class="term-val">Same amount every month, moderate bequest</span></div>
           <div class="terms-row"><span class="term-label">Escalating Plan</span><span class="term-val">Starts smaller, grows ~2%/yr</span></div>
           <div class="terms-note">This is separate from the 3 savings goals above &mdash; it only changes how your payout is paid out, not how much you've saved. Note: CPF uses the word &ldquo;Basic&rdquo; for both the <strong>Basic Retirement Sum</strong> (a savings goal) and the <strong>Basic Plan</strong> (a payout plan). They are not the same thing.</div>
+          <div class="terms-note" style="margin-top:8px"><strong>What's a bequest?</strong> If you pass away before your CPF LIFE savings (plus interest, minus payouts already received) are fully paid out, CPF pays what's left to your nominated beneficiaries &mdash; this is called a bequest, or death benefit. All 3 plans include one; the Basic Plan is built to leave the biggest, since it puts less of your savings into your monthly payout. You nominate who receives it through CPF's Nomination Scheme.</div>
         </div>
       </div>
 
@@ -393,6 +394,13 @@
               <tbody id="payout-table-body"></tbody>
             </table>
           </div>
+
+          <div class="card">
+            <div class="chart-title">Bequest by plan (illustrative)</div>
+            <div class="chart-sub">If you pass away before your CPF LIFE savings are used up, this is roughly what's left for your beneficiaries under each plan &mdash; the bold line is your selected plan.</div>
+            <svg id="chart-bequest" viewBox="0 0 640 260" style="width:100%;height:auto"></svg>
+            <div class="terms-note" style="margin-top:10px">This is a simplified illustration, not CPF Board's own bequest figures &mdash; CPF doesn't publish an exact bequest formula the way it does for payouts. It assumes each plan starts with a different share of your Retirement Account balance as your own refundable balance (the rest is pooled to help fund lifelong payouts for everyone in that plan), which then grows with interest and shrinks with your monthly payout until it runs out. For your real bequest projection, use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a>.</div>
+          </div>
         </div>
       </div>
 
@@ -401,7 +409,7 @@
           <h3>Want help making a real plan?</h3>
           <p>Chat with our Smart Adviser about your CPF and retirement income options. It only takes a couple of minutes, and it's free.</p>
         </div>
-        <a href="index.html#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Chat now &mdash; it's free</a>
+        <a href="index.html#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open(window.__cpfChatContext);return false;}">Chat now &mdash; it's free</a>
       </div>
 
       <p class="footnote">For planning discussion only &mdash; not financial advice, and not a CPF Board product.</p>
