@@ -64,6 +64,15 @@ export async function sendLeadEmail(lead, aiSummary) {
                             Contact: ${lead.contact || "(not given)"}
                             Interest: ${lead.interest || "(not specified)"}
                             Existing coverage: ${lead.existing_coverage || "(not specified)"}
+                            Sum insured / coverage amount: ${lead.sum_insured || "(not specified)"}
+                            Property type: ${lead.property_type || "(not specified)"}
+                            Sum insured (building/renovation): ${lead.sum_insured_building || "(not specified)"}
+                            Sum insured (contents): ${lead.sum_insured_contents || "(not specified)"}
+                            Budget: ${lead.budget || "(not specified)"}
+                            Age range: ${lead.age_range || "(not specified)"}
+                            Occupation: ${lead.occupation || "(not specified)"}
+                            Income band: ${lead.income_band || "(not specified)"}
+                            Underwriting notes (health/smoking/lifestyle): ${lead.underwriting_notes || "(not specified)"}
                             Timeline: ${lead.urgency_signal || "(not specified)"}
                             Notes: ${lead.notes || "(none)"}
 
