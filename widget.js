@@ -70,16 +70,28 @@
                                                                    position: fixed; bottom: 92px; right: 20px; z-index: 999999;
                                                                          width: 400px; max-width: calc(100vw - 32px);
                                                                                height: min(640px, calc(100vh - 120px));
+                                                                               height: min(640px, calc(100dvh - 120px));
                                                                                      background: white; border-radius: 14px;
                                                                                            box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: none;
                                                                                                  flex-direction: column; overflow: hidden;
                                                                                                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                                                                                                            }
                                                                                                                #pfp-widget-panel.open { display: flex; }
+                                                                                                               @media (max-width: 640px), (max-height: 480px) {
+                                                                                                                 #pfp-widget-panel {
+                                                                                                                   top: 0; left: 0; right: 0; bottom: 0;
+                                                                                                                   width: 100%; max-width: 100%;
+                                                                                                                   height: 100vh; height: 100dvh;
+                                                                                                                   border-radius: 0;
+                                                                                                                 }
+                                                                                                                 #pfp-widget-header { padding-top: max(14px, env(safe-area-inset-top)); }
+                                                                                                                 #pfp-widget-input-area { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+                                                                                                               }
                                                                                                                    #pfp-widget-header {
                                                                                                                          background: #1a3a5c; color: white; padding: 14px 18px;
                                                                                                                                font-weight: 600; font-size: 16px; display: flex;
                                                                                                                                      justify-content: space-between; align-items: center;
+                                                                                                                                     flex-shrink: 0;
                                                                                                                                          }
                                                                                                                                              #pfp-widget-header small { display: block; font-weight: 400; font-size: 12px; color: #c9d6e6; margin-top: 2px; }
                                                                                                                                              #pfp-widget-close { cursor: pointer; font-size: 20px; opacity: 0.85; }

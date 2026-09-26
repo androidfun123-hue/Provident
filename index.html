@@ -30,7 +30,7 @@
   .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--navy); letter-spacing: -.01em; }
   .brand small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: .02em; }
-  .nav ul { display: flex; gap: 28px; list-style: none; font-size: 15px; font-weight: 500; color: var(--muted); }
+  .nav > ul { display: flex; gap: 28px; list-style: none; font-size: 15px; font-weight: 500; color: var(--muted); }
   .nav ul a:hover { color: var(--navy); }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 15px; border: 1.5px solid transparent; cursor: pointer; transition: .15s; }
   .btn-primary { background: var(--green); color: #fff; }
@@ -84,11 +84,20 @@
   footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
   footer .brand { color: #fff; }
   .disclaimer { max-width: 620px; font-size: 13px; line-height: 1.6; }
+  .nav-toggle { display: none; background: none; border: none; color: var(--navy); cursor: pointer; padding: 6px 4px; margin-right: 6px; font-size: 26px; line-height: 1; }
+  #mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 12px 24px rgba(15,42,74,.1); }
+  #mobile-menu.open { display: block; }
+  #mobile-menu ul { display: block; list-style: none; padding: 8px 20px 16px; }
+  #mobile-menu ul a { display: block; padding: 14px 4px; font-size: 16px; font-weight: 500; color: var(--ink); border-bottom: 1px solid var(--line); }
+  #mobile-menu ul li:last-child a { border-bottom: none; }
   @media (max-width: 900px) {
     .g4 { grid-template-columns: repeat(2, 1fr); }
     .g3 { grid-template-columns: 1fr 1fr; }
     .split, .contact { grid-template-columns: 1fr; gap: 40px; }
-    .nav ul { display: none; }
+    .nav > ul { display: none; }
+    .nav-toggle { display: inline-flex; align-items: center; }
+    header { position: sticky; }
+    .nav { position: relative; }
   }
   @media (max-width: 560px) {
     .g4, .g3 { grid-template-columns: 1fr; }
@@ -115,7 +124,19 @@
       <li><a href="#how">How it works</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
+    <button id="nav-toggle" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">&#9776;</button>
     <a href="#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Get a quote</a>
+    <div id="mobile-menu">
+      <ul>
+        <li><a href="#adviser">Smart Adviser</a></li>
+        <li><a href="#services">Coverage</a></li>
+        <li><a href="#personal">Personal &amp; Life</a></li>
+        <li><a href="cpf-life-calculator.html">CPF LIFE Calculator</a></li>
+        <li><a href="#why">Why us</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
   </div>
 </header>
 <main id="top">
@@ -310,6 +331,25 @@
   </div>
 </footer>
 <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+<script>
+(function () {
+  var btn = document.getElementById('nav-toggle');
+  var menu = document.getElementById('mobile-menu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function () {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.innerHTML = open ? '&times;' : '&#9776;';
+  });
+  menu.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = '&#9776;';
+    });
+  });
+})();
+</script>
 <script src="https://ai.providentfpsg.com/widget.js" defer></script>
 </body>
 </html>

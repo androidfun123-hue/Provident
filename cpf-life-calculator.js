@@ -114,34 +114,55 @@
 
     var series = [];
     var a;
+    var isPost55 = age >= 55;
+    var frs55 = null, ers55 = null, raBal, oaBal, buildFromAge, ra55, oa55;
+    var referenceAge = isPost55 ? age : 55;
 
-    for (a = age; a < 55; a++) {
-      var ersA = ANCHORS.ers * Math.pow(1 + growth, a - age);
-      series.push({ age: a, ra: null, combined: oa + sa, oaLeft: 0, ers: ersA });
-      oa = oa * (1 + oarate) + oac;
-      sa = sa * (1 + sarate) + sac;
-    }
+    if (!isPost55) {
+      for (a = age; a < 55; a++) {
+        var ersA = ANCHORS.ers * Math.pow(1 + growth, a - age);
+        series.push({ age: a, ra: null, combined: oa + sa, oaLeft: 0, ers: ersA });
+        oa = oa * (1 + oarate) + oac;
+        sa = sa * (1 + sarate) + sac;
+      }
 
-    var frs55 = ANCHORS.frs * Math.pow(1 + growth, 55 - age);
-    var ers55 = ANCHORS.ers * Math.pow(1 + growth, 55 - age);
-    var ra, oaAfter;
-    if (sa >= frs55) {
-      ra = frs55;
-      oaAfter = oa + (sa - frs55);
+      frs55 = ANCHORS.frs * Math.pow(1 + growth, 55 - age);
+      ers55 = ANCHORS.ers * Math.pow(1 + growth, 55 - age);
+      if (sa >= frs55) {
+        raBal = frs55;
+        oaBal = oa + (sa - frs55);
+      } else {
+        var fromOA = Math.min(oa, frs55 - sa);
+        raBal = sa + fromOA;
+        oaBal = oa - fromOA;
+      }
+      if (topup && raBal < ers55 && oaBal > 0) {
+        var t55 = Math.min(oaBal, ers55 - raBal);
+        raBal += t55;
+        oaBal -= t55;
+      }
+      series.push({ age: 55, ra: raBal, combined: raBal, oaLeft: oaBal, ers: ers55 });
+      buildFromAge = 56;
     } else {
-      var fromOA = Math.min(oa, frs55 - sa);
-      ra = sa + fromOA;
-      oaAfter = oa - fromOA;
+      // Age 55+: SA no longer exists (CPF has already merged it into the
+      // Retirement Account), so the "sa" field is read as the current RA
+      // balance directly and there's no 55-transfer step to simulate.
+      raBal = sa;
+      oaBal = oa;
+      ers55 = ANCHORS.ers * Math.pow(1 + growth, 0);
+      if (topup && raBal < ers55 && oaBal > 0) {
+        var t0 = Math.min(oaBal, ers55 - raBal);
+        raBal += t0;
+        oaBal -= t0;
+      }
+      series.push({ age: age, ra: raBal, combined: raBal, oaLeft: oaBal, ers: ers55 });
+      buildFromAge = age + 1;
     }
-    if (topup && ra < ers55 && oaAfter > 0) {
-      var t55 = Math.min(oaAfter, ers55 - ra);
-      ra += t55;
-      oaAfter -= t55;
-    }
-    series.push({ age: 55, ra: ra, combined: ra, oaLeft: oaAfter, ers: ers55 });
 
-    var raBal = ra, oaBal = oaAfter;
-    for (a = 56; a <= 70; a++) {
+    ra55 = raBal;
+    oa55 = oaBal;
+
+    for (a = buildFromAge; a <= 70; a++) {
       raBal = raBal * (1 + sarate);
       oaBal = oaBal * (1 + oarate) + oac;
       var ersYr = ANCHORS.ers * Math.pow(1 + growth, a - age);
@@ -153,7 +174,15 @@
       series.push({ age: a, ra: raBal, combined: raBal, oaLeft: oaBal, ers: ersYr });
     }
 
-    return { series: series, frs55: frs55, ers55: ers55, ra55: ra, oa55: oaAfter };
+    return {
+      series: series,
+      frs55: frs55,
+      ers55: ers55,
+      ra55: ra55,
+      oa55: oa55,
+      isPost55: isPost55,
+      referenceAge: referenceAge,
+    };
   }
 
   function getInputs() {
@@ -194,6 +223,42 @@
       note.textContent =
         "Age " + payoutAge + " is earlier than CPF LIFE's official 65+ start — shown here as an " +
         "illustrative extrapolation using the same 7%/year factor in reverse, not an official CPF option.";
+    }
+  }
+
+  function updateAgeDependentFields(isPost55) {
+    var saLabel = $("sa-label");
+    var saNote = $("sa-note");
+    var ageNote = $("age-note");
+    var sacField = $("sac-field");
+    var hdg55 = $("hdg-55");
+    var tlFrs55 = $("tl-frs55");
+    var tlRa55 = $("tl-ra55");
+    var tlOa55 = $("tl-oa55");
+    var tlGap55 = $("tl-gap55");
+
+    if (isPost55) {
+      saLabel.textContent = "Current RA balance";
+      saNote.textContent =
+        "CPF merges your SA into your Retirement Account at 55, so enter that RA balance here, not an SA balance.";
+      ageNote.textContent =
+        "At 55+, OA no longer transfers automatically — the figures below start from the RA and OA balances you enter.";
+      sacField.style.display = "none";
+      hdg55.textContent = "Your Retirement Account today";
+      tlFrs55.textContent = "ERS ceiling (today)";
+      tlRa55.textContent = "Your RA today";
+      tlOa55.textContent = "Your OA today";
+      tlGap55.textContent = "Gap to ERS today";
+    } else {
+      saLabel.textContent = "Current SA balance";
+      saNote.textContent = "";
+      ageNote.textContent = "";
+      sacField.style.display = "";
+      hdg55.textContent = "Your Retirement Account at 55, projected";
+      tlFrs55.textContent = "Full Retirement Sum (FRS) target at 55";
+      tlRa55.textContent = "Your RA at 55";
+      tlOa55.textContent = "OA left after transfer";
+      tlGap55.textContent = "Shortfall to ERS at 55";
     }
   }
 
@@ -353,10 +418,21 @@
 
   function recalc() {
     var inputs = getInputs();
+
+    // A payout can't start before the person's current age.
+    var payoutSlider = $("payoutage");
+    var minPayoutAge = Math.max(63, inputs.age);
+    if (Number(payoutSlider.min) !== minPayoutAge) payoutSlider.min = minPayoutAge;
+    if (inputs.payoutAge < minPayoutAge) {
+      payoutSlider.value = minPayoutAge;
+      inputs.payoutAge = minPayoutAge;
+    }
+
     updateSliderLabels(inputs);
     updatePayoutageNote(inputs.payoutAge);
 
     var sim = simulate(inputs);
+    updateAgeDependentFields(sim.isPost55);
     var series = sim.series;
     var s65 = null;
     for (var i = 0; i < series.length; i++) {
@@ -367,21 +443,37 @@
     }
     var frs65 = ANCHORS.frs * Math.pow(1 + inputs.growth, 65 - inputs.age);
 
-    // 55 tiles
-    $("t-frs55").textContent = fmtMoney(sim.frs55);
-    $("t-frs55-sub").textContent =
-      "Projected at " + (inputs.growth * 100).toFixed(1) + "%/yr growth";
-    $("t-ra55").textContent = fmtMoney(sim.ra55);
-    $("t-ra55-sub").textContent = inputs.topup
-      ? "SA + OA transferred, plus OA top-up to ERS"
-      : "SA + OA transferred, up to that year's FRS";
-    $("t-oa55").textContent = fmtMoney(sim.oa55);
-    var gap55 = Math.max(0, sim.ers55 - sim.ra55);
-    $("t-gap55").textContent = fmtMoney(gap55);
-    $("t-gap55-sub").textContent =
-      gap55 > 0
-        ? "To reach the Enhanced Retirement Sum at 55"
-        : "You reached the Enhanced Retirement Sum at 55";
+    // "Retirement Account at 55" (or "today", if already 55+) tiles
+    if (sim.isPost55) {
+      $("t-frs55").textContent = fmtMoney(sim.ers55);
+      $("t-frs55-sub").textContent = "This year's Enhanced Retirement Sum ceiling";
+      $("t-ra55").textContent = fmtMoney(sim.ra55);
+      $("t-ra55-sub").textContent = inputs.topup
+        ? "Includes an immediate OA top-up to this year's ERS"
+        : "As entered";
+      $("t-oa55").textContent = fmtMoney(sim.oa55);
+      var gapToday = Math.max(0, sim.ers55 - sim.ra55);
+      $("t-gap55").textContent = fmtMoney(gapToday);
+      $("t-gap55-sub").textContent =
+        gapToday > 0
+          ? "To reach the Enhanced Retirement Sum today"
+          : "You've already reached the Enhanced Retirement Sum";
+    } else {
+      $("t-frs55").textContent = fmtMoney(sim.frs55);
+      $("t-frs55-sub").textContent =
+        "Projected at " + (inputs.growth * 100).toFixed(1) + "%/yr growth";
+      $("t-ra55").textContent = fmtMoney(sim.ra55);
+      $("t-ra55-sub").textContent = inputs.topup
+        ? "SA + OA transferred, plus OA top-up to ERS"
+        : "SA + OA transferred, up to that year's FRS";
+      $("t-oa55").textContent = fmtMoney(sim.oa55);
+      var gap55 = Math.max(0, sim.ers55 - sim.ra55);
+      $("t-gap55").textContent = fmtMoney(gap55);
+      $("t-gap55-sub").textContent =
+        gap55 > 0
+          ? "To reach the Enhanced Retirement Sum at 55"
+          : "You reached the Enhanced Retirement Sum at 55";
+    }
 
     // 65 tiles
     $("t-ers65").textContent = fmtMoney(s65.ers);
