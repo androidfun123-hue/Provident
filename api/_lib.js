@@ -1,4 +1,8 @@
-export const YOUR_NOTIFICATION_EMAIL = "hello@providentfpsg.com";
+export const YOUR_NOTIFICATION_EMAIL = "provident.fun@gmail.com";
+// Must stay the Resend account's own address while emails are sent from
+// onboarding@resend.dev -- Resend's shared test domain rejects (403) any
+// other recipient. To deliver straight to hello@providentfpsg.com, verify
+// providentfpsg.com in Resend first and send "from" an address on it.
 
 // Locked down: only these exact origins may call these APIs.
 export const ALLOWED_ORIGINS = [
@@ -103,7 +107,7 @@ export async function sendLeadEmail(lead, aiSummary, sourceContext) {
                             `,
                   }),
           });
-          if (!res.ok) throw new Error(`Email send failed: ${res.status}`);
+          if (!res.ok) throw new Error(`Email send failed: ${res.status} ${await res.text().catch(() => "")}`);
           return true;
     } catch (err) {
           console.error("EMAIL SEND FAILED — lead may be lost if not logged elsewhere:", err.message, lead);
