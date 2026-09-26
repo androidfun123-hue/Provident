@@ -238,6 +238,14 @@
              input.id = "pfp-widget-text-input";
              input.placeholder = "Type your reply…";
              input.maxLength = 300;
+             input.setAttribute("enterkeyhint", "send");
+             input.setAttribute("autocomplete", "off");
+             input.addEventListener("focus", () => {
+                       // iOS keyboard animates in over ~250-300ms; re-sync after it
+                       // settles so the input + latest message stay in view.
+                       setTimeout(syncPanelToViewport, 50);
+                       setTimeout(syncPanelToViewport, 350);
+             });
 
           const sendBtn = document.createElement("button");
              sendBtn.id = "pfp-widget-send-btn";
@@ -252,9 +260,85 @@
              inputArea.appendChild(sendBtn);
    }
 
+   // ---- Mobile keyboard handling ----
+   // On iOS Safari, a fixed-position panel does NOT resize or reposition
+   // when the on-screen keyboard opens — only the "visual viewport" shrinks.
+   // Left alone, this pushes the input (and sometimes the whole panel) up
+   // behind the keyboard, or lets the underlying page scroll out from under
+   // the fixed panel. We track window.visualViewport and resize the panel
+   // to match the actually-visible area, and pin the background page so it
+   // can't scroll while the panel is open.
+   let vvCleanup = null;
+
+   function isMobilePanel() {
+             return window.matchMedia("(max-width: 640px), (max-height: 480px)").matches;
+   }
+
+   function lockBodyScroll() {
+             const scrollY = window.scrollY || window.pageYOffset || 0;
+             document.body.dataset.pfpScrollY = String(scrollY);
+             document.body.style.position = "fixed";
+             document.body.style.top = `-${scrollY}px`;
+             document.body.style.left = "0";
+             document.body.style.right = "0";
+             document.body.style.width = "100%";
+   }
+
+   function unlockBodyScroll() {
+             if (document.body.dataset.pfpScrollY === undefined) return;
+             const scrollY = parseInt(document.body.dataset.pfpScrollY, 10) || 0;
+             document.body.style.position = "";
+             document.body.style.top = "";
+             document.body.style.left = "";
+             document.body.style.right = "";
+             document.body.style.width = "";
+             delete document.body.dataset.pfpScrollY;
+             window.scrollTo(0, scrollY);
+   }
+
+   function syncPanelToViewport() {
+             const panel = document.getElementById("pfp-widget-panel");
+             const vv = window.visualViewport;
+             if (!panel || !vv || !isMobilePanel()) return;
+             panel.style.height = vv.height + "px";
+             panel.style.top = vv.offsetTop + "px";
+             panel.style.bottom = "auto";
+             const body = document.getElementById("pfp-widget-body");
+             if (body) body.scrollTop = body.scrollHeight;
+   }
+
+   function startViewportTracking() {
+             if (!window.visualViewport || vvCleanup) return;
+             const handler = () => syncPanelToViewport();
+             window.visualViewport.addEventListener("resize", handler);
+             window.visualViewport.addEventListener("scroll", handler);
+             vvCleanup = () => {
+                       window.visualViewport.removeEventListener("resize", handler);
+                       window.visualViewport.removeEventListener("scroll", handler);
+             };
+             syncPanelToViewport();
+   }
+
+   function stopViewportTracking() {
+             if (vvCleanup) {
+                       vvCleanup();
+                       vvCleanup = null;
+             }
+             const panel = document.getElementById("pfp-widget-panel");
+             if (panel) {
+                       panel.style.height = "";
+                       panel.style.top = "";
+                       panel.style.bottom = "";
+             }
+   }
+
    function openWidget() {
              dismissTeaser();
              document.getElementById("pfp-widget-panel").classList.add("open");
+             if (isMobilePanel()) {
+                       lockBodyScroll();
+                       startViewportTracking();
+             }
              if (history.length === 0) {
                          history.push({ role: "model", text: GREETING });
                          appendBotMessage(GREETING);
@@ -264,6 +348,8 @@
 
    function closeWidget() {
              document.getElementById("pfp-widget-panel").classList.remove("open");
+             stopViewportTracking();
+             unlockBodyScroll();
    }
 
    function dismissTeaser() {
