@@ -39,11 +39,11 @@
   var PLAN_FACTORS = { standard: 1, basic: 0.9, escalating: 0.8 };
   var PLAN_NOTES = {
     standard:
-      "Level payouts for life. Higher bequest to beneficiaries than Escalating, lower than Basic.",
+      "Level payouts for life. Higher bequest to beneficiaries than Escalating, lower than Basic. This only changes your monthly payout below — it doesn't change your projected Retirement Account or Retirement Sum figures above.",
     basic:
-      "Lower monthly payouts, but preserves more of your Retirement Account as a bequest — modelled here as roughly 10% lower than Standard.",
+      "Lower monthly payouts, but preserves more of your Retirement Account as a bequest — modelled here as roughly 10% lower than Standard. This “Basic” is a payout plan, not the Basic Retirement Sum (BRS) above — two different CPF terms that happen to share a name. It only changes your monthly payout below.",
     escalating:
-      "Starts lower but rises about 2% a year to help keep pace with inflation — modelled here as roughly 20% lower than Standard at the start.",
+      "Starts lower but rises about 2% a year to help keep pace with inflation — modelled here as roughly 20% lower than Standard at the start. This only changes your monthly payout below — it doesn't change your projected Retirement Account or Retirement Sum figures above.",
   };
 
   var state = { plan: "standard", topup: false };
