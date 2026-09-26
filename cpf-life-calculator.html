@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CPF LIFE Retirement Calculator | Provident Financial Planning</title>
-<meta name="description" content="Free CPF LIFE retirement calculator: project your Retirement Account to age 55 and 65, check it against the Enhanced Retirement Sum, and estimate your monthly CPF LIFE payout under the Standard, Basic and Escalating plans.">
+<meta name="description" content="Free CPF LIFE retirement calculator for any CPF member: project your Retirement Account to age 55 and 65 against the Basic, Full and Enhanced Retirement Sums, and estimate your monthly CPF LIFE payout under the Standard, Basic and Escalating plans.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -167,7 +167,7 @@
     <div class="wrap">
       <span class="eyebrow">Free planning tool</span>
       <h1>CPF LIFE Retirement Calculator</h1>
-      <p>Key in your age and your current balances (OA and SA if you're under 55, or OA and RA if you're 55 or older). This projects them forward to see whether your Retirement Account reaches the Enhanced Retirement Sum by 65 &mdash; and estimates your monthly CPF LIFE payout.</p>
+      <p>Key in your age and your current balances (OA and SA if you're under 55, or OA and RA if you're 55 or older). This projects your Retirement Account forward to 55 and 65 and estimates your monthly CPF LIFE payout &mdash; whether you're on track for the Basic, Full or Enhanced Retirement Sum, or just want to see where you stand.</p>
     </div>
   </section>
   <section>
@@ -183,7 +183,7 @@
           <div class="terms-row"><span class="term-label">Basic (BRS)</span><span class="term-val">$110,200</span></div>
           <div class="terms-row"><span class="term-label">Full (FRS)</span><span class="term-val">$220,400</span></div>
           <div class="terms-row"><span class="term-label">Enhanced (ERS)</span><span class="term-val">$440,800</span></div>
-          <div class="terms-note">This calculator targets the <strong>Full Retirement Sum</strong> by default when forming your RA at 55, the same as most CPF members. The lower <strong>Basic Retirement Sum</strong> only applies if you pledge a property to CPF &mdash; that option isn't modelled here. Turn on &ldquo;Top up OA to ERS&rdquo; on the left to model the top tier instead.</div>
+          <div class="terms-note">This calculator targets the <strong>Full Retirement Sum</strong> by default when forming your RA at 55, the same as most CPF members. The lower <strong>Basic Retirement Sum</strong> only applies if you pledge a property to CPF &mdash; that option isn't modelled here. Turn on &ldquo;Optional: top up OA to ERS&rdquo; on the left to model the top tier instead.</div>
         </div>
         <div class="terms-card">
           <h4>CPF LIFE payout plans</h4>
@@ -266,12 +266,12 @@
               <div class="field-note" id="payoutage-note">Age 65 &mdash; the earliest official CPF LIFE start, no deferral adjustment.</div>
             </div>
             <div class="field">
-              <div class="field-label">Top up OA to ERS?</div>
+              <div class="field-label">Optional: top up OA to ERS?</div>
               <div class="pillgroup" id="topup-group">
                 <button data-topup="off" class="active">Off</button>
                 <button data-topup="on">On</button>
               </div>
-              <div class="field-note">On uses any available OA to close the gap to the ERS ceiling &mdash; from 55, or straight away if you're already 55+.</div>
+              <div class="field-note">Leave this off to just see where your default FRS-based savings land you. Switch it on to model voluntarily using any available OA to reach the top Enhanced Retirement Sum tier instead &mdash; from 55, or straight away if you're already 55+.</div>
             </div>
           </div>
         </div>
@@ -290,13 +290,13 @@
           </div>
 
           <div>
-            <div class="chart-title" id="hdg-65">Will you reach ERS by 65?</div>
-            <div class="chart-sub" id="sub-65">ERS keeps rising every year &mdash; this checks your RA against the ceiling in the year you turn 65.</div>
+            <div class="chart-title" id="hdg-65">Your Retirement Account at 65, projected</div>
+            <div class="chart-sub" id="sub-65">Same projection carried forward &mdash; checked against all three Retirement Sum tiers, whichever one you're aiming for.</div>
             <div class="tile-row" id="tiles-65">
               <div class="tile"><div class="tile-label" id="tl-ers65">ERS ceiling at 65</div><div class="tile-value" id="t-ers65">&mdash;</div></div>
               <div class="tile hl"><div class="tile-label" id="tl-ra65">Your RA at 65</div><div class="tile-value" id="t-ra65">&mdash;</div></div>
               <div class="tile"><div class="tile-label" id="tl-oa65">Your OA at 65</div><div class="tile-value" id="t-oa65">&mdash;</div></div>
-              <div class="tile"><div class="tile-label">Gap to ERS</div><div class="tile-value" id="t-gapers">&mdash;</div></div>
+              <div class="tile"><div class="tile-label">Vs. ERS ceiling</div><div class="tile-value" id="t-gapers">&mdash;</div></div>
             </div>
             <div class="gap-msg" id="gap-msg" style="margin-top:14px"></div>
           </div>
@@ -344,7 +344,7 @@
         <a href="index.html#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Chat with our Smart Insurance Adviser</a>
       </div>
 
-      <p class="footnote">For planning discussion only &mdash; not financial advice, and not a CPF Board product. Under 55, this model transfers SA first, then OA, up to that year's projected FRS to form your RA; any leftover stays in OA. At 55 or older, CPF has already done that transfer for you, so the RA balance you enter is used directly instead. If &ldquo;Top up OA to ERS&rdquo; is on, leftover OA is used first (at 55, or immediately if you're already 55+), then the model rechecks the gap each later year against that year's rising ERS ceiling. Contribution growth uses the single annual OA/SA contribution amounts you set, held flat in today's dollars &mdash; it does not model CPF's age-banded contribution or allocation-rate tables. The monthly payout is estimated by scaling your projected RA against the CPF Board's own 2026-cohort Standard Plan examples at the Basic, Full and Enhanced Retirement Sum levels ($950 / $1,780 / $3,440 respectively), interpolated in between. Deferring past 65 assumes a 7%-per-year compounding increase, consistent with CPF's published deferral bonus; ages 63&ndash;64 (marked with the table's earlier rows) are a mirrored extrapolation, since CPF LIFE payouts officially start from 65. Basic and Escalating plan figures apply a rough illustrative adjustment (Escalating starts ~20% lower and grows 2%/yr; Basic starts ~10% lower) since CPF Board does not publish an exact plan-to-plan formula &mdash; use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a> to compare real payout amounts for your plan choice. Reference anchors: CPF Board's published 2026 Retirement Sums and Standard Plan payout examples.</p>
+      <p class="footnote">For planning discussion only &mdash; not financial advice, and not a CPF Board product. Under 55, this model transfers SA first, then OA, up to that year's projected FRS to form your RA; any leftover stays in OA. At 55 or older, CPF has already done that transfer for you, so the RA balance you enter is used directly instead. If &ldquo;Optional: top up OA to ERS&rdquo; is on, leftover OA is used first (at 55, or immediately if you're already 55+), then the model rechecks the gap each later year against that year's rising ERS ceiling. Contribution growth uses the single annual OA/SA contribution amounts you set, held flat in today's dollars &mdash; it does not model CPF's age-banded contribution or allocation-rate tables. The monthly payout is estimated by scaling your projected RA against the CPF Board's own 2026-cohort Standard Plan examples at the Basic, Full and Enhanced Retirement Sum levels ($950 / $1,780 / $3,440 respectively), interpolated in between. Deferring past 65 assumes a 7%-per-year compounding increase, consistent with CPF's published deferral bonus; ages 63&ndash;64 (marked with the table's earlier rows) are a mirrored extrapolation, since CPF LIFE payouts officially start from 65. Basic and Escalating plan figures apply a rough illustrative adjustment (Escalating starts ~20% lower and grows 2%/yr; Basic starts ~10% lower) since CPF Board does not publish an exact plan-to-plan formula &mdash; use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a> to compare real payout amounts for your plan choice. Reference anchors: CPF Board's published 2026 Retirement Sums and Standard Plan payout examples.</p>
     </div>
   </section>
 </main>

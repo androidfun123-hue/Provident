@@ -266,22 +266,31 @@
     }
   }
 
-  function updateGapMsg(ra65, ers65, frs65) {
+  function updateGapMsg(ra65, ers65, frs65, brs65) {
     var el = $("gap-msg");
     if (ra65 >= ers65) {
       el.className = "gap-msg ok";
       el.innerHTML =
-        "<strong>On track for the Enhanced Retirement Sum</strong>You're projected to reach the maximum CPF LIFE payout tier by 65.";
+        "<strong>Enhanced Retirement Sum reached</strong>You're projected to reach the top CPF LIFE payout tier by 65 &mdash; the estimate below reflects the maximum this tool models.";
     } else if (ra65 >= frs65) {
       el.className = "gap-msg ok";
       el.innerHTML =
-        "<strong>Full Retirement Sum reached</strong>You're projected to clear the Full Retirement Sum by 65, but short of the Enhanced Retirement Sum by " +
-        fmtMoney(ers65 - ra65) + ". A top-up could raise your payout further.";
+        "<strong>Full Retirement Sum reached</strong>You're projected to clear the Full Retirement Sum by 65 &mdash; the tier most CPF members land at. You're " +
+        fmtMoney(ers65 - ra65) + " short of the Enhanced Retirement Sum ceiling, which is only relevant if you're voluntarily topping up for a larger payout.";
+    } else if (ra65 >= brs65) {
+      el.className = "gap-msg ok";
+      el.innerHTML =
+        "<strong>Between Basic and Full Retirement Sum</strong>You're projected at " +
+        fmtMoney(ra65) + " by 65 &mdash; above the " + fmtMoney(brs65) +
+        " Basic Retirement Sum, but " + fmtMoney(frs65 - ra65) +
+        " short of the Full Retirement Sum. That's still enough to join CPF LIFE, just at a smaller monthly payout than the Full Retirement Sum examples above.";
     } else {
       el.className = "gap-msg warn";
       el.innerHTML =
-        "<strong>Projected shortfall at 65</strong>You're projected to fall short of the Full Retirement Sum by " +
-        fmtMoney(frs65 - ra65) + ". Consider increasing contributions or a voluntary top-up.";
+        "<strong>Below Basic Retirement Sum</strong>You're projected at " +
+        fmtMoney(ra65) + " by 65, short of even the " + fmtMoney(brs65) +
+        " Basic Retirement Sum by " + fmtMoney(brs65 - ra65) +
+        ". Consider increasing contributions or a voluntary top-up if you'd like a larger CPF LIFE payout.";
     }
   }
 
@@ -446,6 +455,7 @@
       }
     }
     var frs65 = ANCHORS.frs * Math.pow(1 + inputs.growth, 65 - inputs.age);
+    var brs65 = ANCHORS.brs * Math.pow(1 + inputs.growth, 65 - inputs.age);
 
     // "Retirement Account at 55" (or "today", if already 55+) tiles
     if (sim.isPost55) {
@@ -513,7 +523,7 @@
     $("t-ra65").textContent = fmtMoney(s65.ra);
     $("t-oa65").textContent = fmtMoney(s65.oaLeft);
     $("t-gapers").textContent = fmtMoney(Math.max(0, s65.ers - s65.ra));
-    updateGapMsg(s65.ra, s65.ers, frs65);
+    updateGapMsg(s65.ra, s65.ers, frs65, brs65);
 
     // Payout
     var payout65std = interpolatePayout(s65.ra);
