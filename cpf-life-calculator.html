@@ -23,6 +23,9 @@
     --amber: #92620a;
     --amber-bg: #fdf3e0;
     --amber-line: #f0dcb0;
+    --red: #b3261e;
+    --red-bg: #fdecea;
+    --red-line: #f3c2bc;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -94,6 +97,8 @@
   .tile-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
   .brs-note { display: none; margin-top: 14px; background: var(--amber-bg); border: 1px solid var(--amber-line); border-radius: 12px; padding: 14px 18px; font-size: 14.5px; color: var(--ink); line-height: 1.6; }
   .brs-note strong { color: var(--navy); }
+  .brs-note.danger { background: var(--red-bg); border-color: var(--red-line); }
+  .brs-note.danger strong { color: var(--red); }
   .goals-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
   .goal-tile { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 14px 10px; text-align: center; transition: border-color .15s, background .15s; }
   .goal-tile.reached { border-color: var(--green); background: var(--green-soft); }
@@ -119,6 +124,14 @@
   .gap-msg { border-radius: 12px; padding: 16px 20px; font-size: 15px; line-height: 1.6; border: 1px solid var(--line); }
   .gap-msg.ok { background: var(--green-soft); border-color: #bfe6d3; }
   .gap-msg.warn { background: var(--amber-bg); border-color: var(--amber-line); }
+  .gap-msg.danger { background: var(--red-bg); border-color: var(--red-line); }
+  .gap-msg.danger strong { color: var(--red); }
+  .gap-msg-cta { display: flex; width: fit-content; margin-top: 12px; padding: 9px 18px; font-size: 13.5px; background: var(--navy); }
+  .gap-msg-cta:hover { background: var(--navy-2); }
+  .step-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .step-heading h3 { margin-bottom: 0; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .quickstart-box { background: var(--green-soft); border: 1px solid #bfe6d3; border-radius: var(--radius); padding: 18px; }
   .gap-msg strong { display: block; margin-bottom: 4px; color: var(--navy); font-size: 15px; }
   .payout-hero { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .payout-hero .amt { font-size: 42px; font-weight: 800; color: var(--navy); letter-spacing: -.02em; }
@@ -235,9 +248,9 @@
 
       <div class="calc-grid">
         <div class="input-card card">
-          <div>
-            <h3>Quick start</h3>
-            <div class="field-note" style="margin-top:-6px;margin-bottom:10px">Not sure what to enter? Pick the situation closest to yours &mdash; you can still adjust every number below.</div>
+          <div class="quickstart-box">
+            <div class="step-heading"><span class="step-num">1</span><h3>Start here: pick your situation</h3></div>
+            <div class="field-note" style="margin-bottom:10px">Not sure what to enter? Choose the option closest to yours to fill in realistic starting numbers &mdash; you can still adjust every number below.</div>
             <div class="template-grid" id="template-group">
               <button data-template="freelancer" type="button"><span class="tpl-name">Freelancer</span><span class="tpl-sub">Little or no CPF</span></button>
               <button data-template="professional" type="button"><span class="tpl-name">Working professional</span><span class="tpl-sub">Steady CPF contributions</span></button>
@@ -246,7 +259,8 @@
             </div>
           </div>
           <div>
-            <h3>Just fill in age, OA and SA</h3>
+            <div class="step-heading"><span class="step-num">2</span><h3>Or enter your own numbers</h3></div>
+            <div class="field-note" style="margin-top:-2px;margin-bottom:10px">The numbers below are just an example to get the chart moving &mdash; swap in your own whenever you're ready, or pick an option above to fill them in for you.</div>
             <div class="field">
               <div class="field-label">Your age <span class="val" id="v-age">35</span></div>
               <input type="range" id="age" min="21" max="65" step="1" value="35">

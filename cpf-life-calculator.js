@@ -41,6 +41,13 @@
   var CPF_LIFE_MIN = 60000;
   var BELOW_MIN_NOTE =
     "This matters: CPF only signs you up for CPF LIFE (paid every month, for life) automatically once you have at least $60,000. Below that, you'd default to a plan that pays out for about 20 years and then stops, even if you're still around. The good news &mdash; you can still choose to join CPF LIFE yourself, any time up to age 80. So it's worth saving toward at least $60,000, and ideally more.";
+  // Shown under a "below the Basic Retirement Sum" message -- this is the
+  // moment someone's most likely to want to talk through their options, so
+  // it offers a direct path into the chat widget instead of leaving them
+  // with just a number. window.__cpfChatContext (set in recalc()) carries
+  // this same shortfall into the chat, so the AI already knows about it.
+  var ADVISER_CTA =
+    '<a href="index.html#contact" class="btn btn-primary gap-msg-cta" onclick="if(window.PFPWidget){window.PFPWidget.open(window.__cpfChatContext);return false;}">Talk to an Adviser &rarr;</a>';
   var CURRENT_YEAR = new Date().getFullYear();
   // CPF Board sets each year's Retirement Sums years in advance. Budget 2022
   // locked in the schedule through 2027; these are the exact published
@@ -414,19 +421,21 @@
         " Basic Retirement Sum. That's enough to join CPF LIFE and get paid every month for life. Saving more could grow your payout further, up to the " +
         fmtMoney(frs65) + " Full Retirement Sum.";
     } else if (ra65 >= CPF_LIFE_MIN) {
-      el.className = "gap-msg warn";
+      el.className = "gap-msg danger";
       el.innerHTML =
         "<strong>You're below the Basic Retirement Sum</strong>By 65, you're projected to have about " +
         fmtMoney(ra65) + ". The Basic Retirement Sum is " + fmtMoney(brs65) +
         " &mdash; you're short by " + fmtMoney(brs65 - ra65) +
         ". The good news: with over " + fmtMoney(CPF_LIFE_MIN) +
-        " saved, you're still automatically signed up for CPF LIFE, paid every month for life &mdash; just at a smaller amount. Saving even a little more, or a one-time top-up, can raise it.";
+        " saved, you're still automatically signed up for CPF LIFE, paid every month for life &mdash; just at a smaller amount. Saving even a little more, or a one-time top-up, can raise it." +
+        ADVISER_CTA;
     } else {
-      el.className = "gap-msg warn";
+      el.className = "gap-msg danger";
       el.innerHTML =
         "<strong>You're below the Basic Retirement Sum</strong>By 65, you're projected to have about " +
         fmtMoney(ra65) + ", well short of the " + fmtMoney(brs65) +
-        " Basic Retirement Sum. " + BELOW_MIN_NOTE;
+        " Basic Retirement Sum. " + BELOW_MIN_NOTE +
+        ADVISER_CTA;
     }
   }
 
@@ -764,6 +773,7 @@
       if (sim.ra55 < sim.frs55 - 0.5) {
         brsNote.style.display = "block";
         if (sim.ra55 >= sim.brs55) {
+          brsNote.className = "brs-note";
           brsNote.innerHTML =
             "<strong>Above the Basic Retirement Sum</strong> At 55, you're projected to have about " +
             fmtMoney(sim.ra55) +
@@ -773,12 +783,14 @@
             fmtMoney(sim.frs55 - sim.ra55) +
             " below the Full Retirement Sum, which would give a bigger monthly payout.";
         } else {
+          brsNote.className = "brs-note danger";
           brsNote.innerHTML =
             "<strong>Below the Basic Retirement Sum</strong> At 55, you're projected to have about " +
             fmtMoney(sim.ra55) +
             " &mdash; short of the " +
             fmtMoney(sim.brs55) +
-            " Basic Retirement Sum. You still have until 65 to grow this. See the note further down on what your balance size means for your CPF LIFE payouts.";
+            " Basic Retirement Sum. You still have until 65 to grow this. See the note further down on what your balance size means for your CPF LIFE payouts." +
+            ADVISER_CTA;
         }
       } else {
         brsNote.style.display = "none";
