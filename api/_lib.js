@@ -1,4 +1,4 @@
-export const YOUR_NOTIFICATION_EMAIL = "provident.fun@gmail.com";
+export const YOUR_NOTIFICATION_EMAIL = "hello@providentfpsg.com";
 
 // Locked down: only these exact origins may call these APIs.
 export const ALLOWED_ORIGINS = [

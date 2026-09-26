@@ -1,4 +1,4 @@
-const YOUR_NOTIFICATION_EMAIL = "provident.fun@gmail.com";
+const YOUR_NOTIFICATION_EMAIL = "hello@providentfpsg.com";
 
 // Locked down: only these exact origins may call this API.
 // (Your real site can be reached at either the bare domain or www,
