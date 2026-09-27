@@ -1,8 +1,7 @@
-const YOUR_NOTIFICATION_EMAIL = "provident.fun@gmail.com";
-// Must stay the Resend account's own address while emails are sent from
-// onboarding@resend.dev -- Resend's shared test domain rejects (403) any
-// other recipient. To deliver straight to hello@providentfpsg.com, verify
-// providentfpsg.com in Resend first and send "from" an address on it.
+const YOUR_NOTIFICATION_EMAIL = "hello@providentfpsg.com";
+// Sent from providentfpsg.com, which is verified in Resend (DNS records
+// resend._domainkey, rsend, send). If that verification is ever removed,
+// Resend will reject these emails with a 403.
 
 // Locked down: only these exact origins may call this API.
 // (Your real site can be reached at either the bare domain or www,
@@ -206,7 +205,7 @@ async function sendEmail(lead, aiResult) {
                                             "Content-Type": "application/json",
                               },
                               body: JSON.stringify({
-                                            from: "Lead Widget <onboarding@resend.dev>",
+                                            from: "Provident Lead Alerts <leads@providentfpsg.com>",
                                             to: YOUR_NOTIFICATION_EMAIL,
                                             subject: `[${aiResult.urgency.toUpperCase()}] New lead: ${lead.name} — ${lead.interest}`,
                                             text: `New lead from your website widget.
