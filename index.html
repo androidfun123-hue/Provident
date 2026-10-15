@@ -94,6 +94,11 @@
   #mobile-menu ul { display: block; list-style: none; padding: 8px 20px 16px; }
   #mobile-menu ul a { display: block; padding: 14px 4px; font-size: 16px; font-weight: 500; color: var(--ink); border-bottom: 1px solid var(--line); }
   #mobile-menu ul li:last-child a { border-bottom: none; }
+  @media (max-width: 1400px) {
+    .nav > ul { display: none; }
+    .nav-toggle { display: inline-flex; align-items: center; }
+    .nav { position: relative; }
+  }
   @media (max-width: 900px) {
     .g4 { grid-template-columns: repeat(2, 1fr); }
     .g3 { grid-template-columns: 1fr 1fr; }
@@ -126,6 +131,7 @@
     <ul>
       <li><a href="#adviser">Smart Adviser</a></li>
       <li><a href="cpf-life-calculator.html">CPF LIFE</a></li>
+      <li><a href="careshield-life-calculator.html">CareShield Life</a></li>
       <li><a href="#services">Coverage</a></li>
       <li><a href="#personal">Personal &amp; Life</a></li>
       <li><a href="#why">Why us</a></li>
@@ -138,6 +144,7 @@
       <ul>
         <li><a href="#adviser">Smart Adviser</a></li>
         <li><a href="cpf-life-calculator.html">CPF LIFE Calculator</a></li>
+        <li><a href="careshield-life-calculator.html">CareShield Life Calculator</a></li>
         <li><a href="#services">Coverage</a></li>
         <li><a href="#personal">Personal &amp; Life</a></li>
         <li><a href="#why">Why us</a></li>
@@ -200,6 +207,27 @@
         <h3>Try the CPF LIFE Calculator</h3>
         <p>Free, takes about a minute, and gives you a clear starting point for retirement planning.</p>
         <a href="cpf-life-calculator.html" class="btn btn-primary">Try the CPF LIFE Calculator &rarr;</a>
+      </div>
+    </div>
+  </section>
+  <section id="careshield-tool" class="alt">
+    <div class="wrap split">
+      <div>
+        <div class="section-head" style="margin-bottom:32px">
+          <span class="kicker">Free tool</span>
+          <h2>Understand your CareShield Life cover</h2>
+          <p>See when you're covered, what CareShield Life pays out if you're severely disabled, what income-based subsidy you may qualify for, and how private CareShield Life Supplements compare &mdash; all in plain language.</p>
+        </div>
+        <ul class="checks">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><div><strong>Know your enrolment status</strong><span>See whether you're already covered, or when you will be.</span></div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><div><strong>Check your subsidy tier</strong><span>Estimate the income-based subsidy on your premium.</span></div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><div><strong>Compare Supplement plans</strong><span>See how Singlife, Great Eastern and Income top-up plans stack up.</span></div></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Try the CareShield Life Calculator</h3>
+        <p>Free, and gives you a clear starting point for long-term care planning.</p>
+        <a href="careshield-life-calculator.html" class="btn btn-primary">Try the CareShield Life Calculator &rarr;</a>
       </div>
     </div>
   </section>

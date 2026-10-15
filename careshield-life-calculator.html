@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareShield Life Calculator | Provident Financial Planning</title>
+<meta name="description" content="A plain-language CareShield Life guide and estimator for Singaporeans — who's covered, when you pay, what the payout looks like, income-based subsidies, and how private CareShield Life Supplements compare.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f2a4a;
+    --navy-2: #173a63;
+    --green: #1f9d6b;
+    --green-soft: #e7f5ee;
+    --ink: #1c2530;
+    --muted: #5b6878;
+    --line: #e3e8ee;
+    --bg: #ffffff;
+    --bg-alt: #f6f8fb;
+    --radius: 14px;
+    --amber: #92620a;
+    --amber-bg: #fdf3e0;
+    --amber-line: #f0dcb0;
+    --red: #b3261e;
+    --red-bg: #fdecea;
+    --red-line: #f3c2bc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.65; font-size: 16.5px; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  header .wrap { max-width: 1320px; }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--navy); letter-spacing: -.01em; white-space: nowrap; flex-shrink: 0; }
+  .brand small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: .02em; white-space: nowrap; }
+  .nav > ul { display: flex; gap: 22px; list-style: none; font-size: 15px; font-weight: 500; color: var(--muted); flex-shrink: 0; }
+  .nav > ul a { white-space: nowrap; }
+  .nav ul a:hover { color: var(--navy); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 15px; border: 1.5px solid transparent; cursor: pointer; transition: .15s; }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: #188459; }
+  .nav .btn { padding: 9px 18px; font-size: 14px; }
+  .calc-hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%); color: #fff; padding: 56px 0; }
+  .calc-hero .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #8fe0bb; margin-bottom: 14px; }
+  .calc-hero h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; letter-spacing: -.02em; max-width: 760px; margin-bottom: 14px; }
+  .calc-hero p { font-size: 17px; color: #c9d6e6; max-width: 680px; }
+  section { padding: 48px 0 88px; }
+  .kicker { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; display: block; }
+  .disclaimer-box { background: var(--amber-bg); border: 1px solid var(--amber-line); color: var(--amber); border-radius: var(--radius); padding: 18px 22px; font-size: 15px; line-height: 1.65; margin-bottom: 32px; }
+  .disclaimer-box strong { color: var(--amber); }
+  .disclaimer-box a { text-decoration: underline; font-weight: 600; }
+  .terms-box { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+  .terms-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; }
+  .terms-card h4 { font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--navy); margin-bottom: 4px; }
+  .terms-card .terms-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 14px; }
+  .terms-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .terms-row:last-of-type { border-bottom: none; }
+  .terms-row .term-label { color: var(--ink); font-weight: 600; }
+  .terms-row .term-val { color: var(--muted); text-align: right; }
+  .terms-note { font-size: 13.5px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+  .terms-note a { text-decoration: underline; }
+  @media (max-width: 700px) { .terms-box { grid-template-columns: 1fr; } }
+  .terms-details { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; margin-bottom: 28px; }
+  .terms-details > summary { cursor: pointer; list-style: none; padding: 14px 20px; font-weight: 600; font-size: 14.5px; color: var(--navy); display: flex; justify-content: space-between; align-items: center; }
+  .terms-details > summary::-webkit-details-marker { display: none; }
+  .terms-details > summary::after { content: "+"; font-size: 18px; font-weight: 500; color: var(--muted); margin-left: 12px; }
+  .terms-details[open] > summary::after { content: "\2212"; }
+  .terms-details .terms-box { padding: 0 20px 20px; margin-bottom: 0; }
+  .calc-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .input-card { display: grid; gap: 26px; }
+  .field { margin-top: 14px; }
+  .field:first-of-type { margin-top: 0; }
+  .field-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 14.5px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: .01em; }
+  .field-label span.val { font-weight: 700; color: var(--navy); font-size: 15px; }
+  .field-label .opt { font-weight: 500; font-size: 12px; color: var(--muted); }
+  .field input[type=range] { width: 100%; accent-color: var(--green); height: 6px; }
+  .field-note { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.55; }
+  .num-input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px; font-size: 16px; font-family: inherit; color: var(--ink); }
+  .pillgroup { display: flex; gap: 6px; background: var(--bg-alt); padding: 4px; border-radius: 10px; }
+  .pillgroup button { flex: 1; border: none; background: transparent; padding: 9px 8px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit; }
+  .pillgroup button.active { background: var(--navy); color: #fff; }
+  .step-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .step-heading h3 { margin-bottom: 0; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .results { display: grid; gap: 20px; }
+  .status-card { background: var(--green-soft); border: 1px solid #bfe6d3; border-radius: var(--radius); padding: 20px 24px; font-size: 15px; line-height: 1.6; color: var(--ink); }
+  .status-card strong { color: var(--navy); }
+  .tile-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .tile { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .tile-label { font-size: 11.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .tile-value { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .tile-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .chart-title { font-size: 16.5px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .chart-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 14px; }
+  .premium-row { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 6px; }
+  .premium-box { flex: 1; min-width: 160px; background: var(--bg-alt); border-radius: 12px; padding: 14px 16px; }
+  .premium-box.match { background: var(--green-soft); border: 1px solid #bfe6d3; }
+  .premium-box .pb-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin-bottom: 6px; }
+  .premium-box .pb-val { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .premium-box .pb-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .amber-note { background: var(--amber-bg); border: 1px solid var(--amber-line); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink); line-height: 1.6; margin-top: 16px; }
+  .amber-note strong { color: var(--amber); }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin-top: 4px; }
+  table.data-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); padding: 8px 8px; border-bottom: 1px solid var(--line); }
+  table.data-table td { padding: 10px 8px; border-bottom: 1px solid var(--line); color: var(--ink); }
+  table.data-table td.num, table.data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.data-table td.hl, table.data-table th.hl { background: var(--green-soft); }
+  table.data-table tr:last-child td { border-bottom: none; }
+  .table-scroll { overflow-x: auto; }
+  .cta-panel { background: var(--navy); color: #fff; border-radius: 20px; padding: 36px 40px; margin-top: 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .cta-panel h3 { font-size: 21px; margin-bottom: 6px; }
+  .cta-panel p { color: #c9d6e6; font-size: 15px; max-width: 480px; }
+  .footnote { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-top: 32px; }
+  .footnote a { text-decoration: underline; }
+  .footnote summary { cursor: pointer; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
+  .footnote details[open] summary { margin-bottom: 10px; }
+  footer { background: var(--navy); color: #9fb0c5; padding: 40px 0; font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  footer .brand { color: #fff; }
+  .disclaimer { max-width: 620px; font-size: 13px; line-height: 1.6; }
+  .nav-toggle { display: none; background: none; border: none; color: var(--navy); cursor: pointer; padding: 6px 4px; margin-right: 6px; font-size: 26px; line-height: 1; }
+  #mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 12px 24px rgba(15,42,74,.1); }
+  #mobile-menu.open { display: block; }
+  #mobile-menu ul { display: block; list-style: none; padding: 8px 20px 16px; }
+  #mobile-menu ul a { display: block; padding: 14px 4px; font-size: 16px; font-weight: 500; color: var(--ink); border-bottom: 1px solid var(--line); }
+  #mobile-menu ul li:last-child a { border-bottom: none; }
+  @media (max-width: 1400px) {
+    .nav > ul { display: none; }
+    .nav-toggle { display: inline-flex; align-items: center; }
+    .nav { position: relative; }
+  }
+  @media (max-width: 980px) {
+    .calc-grid { grid-template-columns: 1fr; }
+    .tile-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    section { padding: 36px 0 60px; }
+    .calc-hero { padding: 40px 0; }
+    .tile-row { grid-template-columns: 1fr 1fr; }
+    .premium-row { flex-direction: column; }
+    .cta-panel { padding: 28px; }
+    .brand small { display: none; }
+    .brand { font-size: 14px; gap: 8px; white-space: normal; line-height: 1.2; flex-shrink: 1; min-width: 0; }
+    .brand img { width: 28px; height: auto; }
+    .nav > .btn { padding: 8px 12px; font-size: 13px; }
+    .nav-toggle { margin-right: 2px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="index.html#top" class="brand" aria-label="Provident Financial Planning home">
+      <img src="assets/logo-icon.png" width="36" height="43" alt="" style="display:block" />
+      <span>Provident Financial Planning<small>General &amp; Life Insurance · Singapore</small></span>
+    </a>
+    <ul>
+      <li><a href="index.html#adviser">Smart Adviser</a></li>
+      <li><a href="cpf-life-calculator.html">CPF LIFE</a></li>
+      <li><a href="careshield-life-calculator.html">CareShield Life</a></li>
+      <li><a href="index.html#services">Coverage</a></li>
+      <li><a href="index.html#why">Why us</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <button id="nav-toggle" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">&#9776;</button>
+    <a href="index.html#contact" class="btn btn-primary" style="flex-shrink:0" onclick="if(window.PFPWidget){window.PFPWidget.open(window.__csChatContext);return false;}">Get a quote</a>
+    <div id="mobile-menu">
+      <ul>
+        <li><a href="index.html#adviser">Smart Adviser</a></li>
+        <li><a href="cpf-life-calculator.html">CPF LIFE Calculator</a></li>
+        <li><a href="careshield-life-calculator.html">CareShield Life Calculator</a></li>
+        <li><a href="index.html#services">Coverage</a></li>
+        <li><a href="index.html#why">Why us</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="calc-hero">
+    <div class="wrap">
+      <span class="eyebrow">Free tool for all Singaporeans</span>
+      <h1>CareShield Life Calculator</h1>
+      <p>See when you're covered, what CareShield Life pays out if you're severely disabled, what subsidy you may qualify for, and how private CareShield Life Supplements compare &mdash; in plain language.</p>
+    </div>
+  </section>
+  <section>
+    <div class="wrap">
+      <div class="disclaimer-box">
+        <strong>An estimate built from officially published figures, not a personal quote.</strong> CareShield Life premiums are personalised (they depend on your exact age, gender, prior insurance and subsidy eligibility) and are not published as a full public table. Not made by or linked to MOH or the CPF Board, and not financial advice. For your exact premium, use the <a href="https://www.careshieldlife.sg/premiumcalculator" target="_blank" rel="noopener">official CareShield Life premium calculator</a> or check your <a href="https://www.cpf.gov.sg/member/healthcare-financing/careshield-life" target="_blank" rel="noopener">CPF dashboard</a>.
+      </div>
+
+      <details class="terms-details">
+        <summary>New to CareShield Life? Key terms explained</summary>
+        <div class="terms-box">
+          <div class="terms-card">
+            <h4>Who's covered, and when you pay</h4>
+            <div class="terms-sub">CareShield Life is Singapore's national long-term care insurance scheme.</div>
+            <div class="terms-row"><span class="term-label">Born 1980 or later</span><span class="term-val">Auto-covered from age 30</span></div>
+            <div class="terms-row"><span class="term-label">Born 1970&ndash;1979</span><span class="term-val">Mostly auto-enrolled via ElderShield</span></div>
+            <div class="terms-row"><span class="term-label">Born 1979 or earlier</span><span class="term-val">Optional &mdash; can opt in</span></div>
+            <div class="terms-row"><span class="term-label">Premiums payable</span><span class="term-val">From joining age to 67</span></div>
+            <div class="terms-note">Premiums are set once, at the age you join, and stay level from then on (aside from scheme-wide reviews). Joining later means a higher level premium, because there are fewer years to fund the same lifetime cover. If you join at 59 or older, premiums are only payable for 10 years instead.</div>
+          </div>
+          <div class="terms-card">
+            <h4>What you get</h4>
+            <div class="terms-sub">A monthly cash payout for life if you become severely disabled.</div>
+            <div class="terms-row"><span class="term-label">Payout trigger</span><span class="term-val">Unable to do 3 of 6 daily tasks</span></div>
+            <div class="terms-row"><span class="term-label">Daily tasks (ADLs)</span><span class="term-val">Wash, dress, eat, toilet, walk, transfer</span></div>
+            <div class="terms-row"><span class="term-label">How long it's paid</span><span class="term-val">For as long as you remain disabled</span></div>
+            <div class="terms-row"><span class="term-label">Paid via</span><span class="term-val">MediSave, cash, or family top-ups</span></div>
+            <div class="terms-note">The payout amount is set by the scheme each year and rises over time to help keep up with care costs &mdash; it isn't affected by your age or how long you've been paying premiums.</div>
+          </div>
+        </div>
+      </details>
+
+      <div class="calc-grid">
+        <div class="input-card card">
+          <div class="step-heading"><span class="step-num">1</span><h3>Your details</h3></div>
+          <div>
+            <div class="field">
+              <div class="field-label">Your age <span class="val" id="v-age">30</span></div>
+              <input type="range" id="age" min="18" max="75" step="1" value="30">
+              <div class="field-note" id="age-note"></div>
+            </div>
+            <div class="field">
+              <div class="field-label">Gender</div>
+              <div class="pillgroup" id="gender-group">
+                <button data-gender="male" class="active" type="button">Male</button>
+                <button data-gender="female" type="button">Female</button>
+              </div>
+              <div class="field-note">CareShield Life premiums are gender-differentiated &mdash; women pay more, reflecting a longer average time in severe disability.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">Residency</div>
+              <div class="pillgroup" id="residency-group">
+                <button data-residency="citizen" class="active" type="button">Citizen</button>
+                <button data-residency="pr" type="button">PR</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="step-heading"><span class="step-num">2</span><h3>Subsidy check <span class="opt" style="font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></h3></div>
+            <div class="field">
+              <div class="field-label">Monthly household income per person</div>
+              <input type="text" inputmode="numeric" class="num-input" id="pchi" value="">
+              <div class="field-note">Total monthly household income &divide; number of people living there. Leave blank to skip &mdash; subsidies are also affected by your home's annual value, which this tool doesn't check.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results">
+          <div class="step-heading"><span class="step-num">3</span><h3>Your results</h3></div>
+
+          <div class="status-card" id="status-card"></div>
+
+          <div class="tile-row">
+            <div class="tile"><div class="tile-label">Entry age used</div><div class="tile-value" id="t-entryage">30</div><div class="tile-sub">When premiums start</div></div>
+            <div class="tile"><div class="tile-label">Premiums payable to</div><div class="tile-value" id="t-payto">Age 67</div><div class="tile-sub" id="t-payto-sub"></div></div>
+            <div class="tile"><div class="tile-label">Subsidy tier</div><div class="tile-value" id="t-subsidy">&mdash;</div><div class="tile-sub" id="t-subsidy-sub">Add income above</div></div>
+            <div class="tile"><div class="tile-label">2026 payout</div><div class="tile-value">$689<span style="font-size:12px;font-weight:600">/mo</span></div><div class="tile-sub">If severely disabled</div></div>
+          </div>
+
+          <div class="card">
+            <div class="chart-title">CareShield Life base premium</div>
+            <div class="chart-sub" id="premium-sub">The only entry age with a published reference rate is 30 &mdash; shown below.</div>
+            <div class="premium-row">
+              <div class="premium-box" id="box-male"><div class="pb-label">Male, joining at 30</div><div class="pb-val">$206<span style="font-size:13px;font-weight:600">/yr</span></div><div class="pb-sub" id="sub-male">before subsidy</div></div>
+              <div class="premium-box" id="box-female"><div class="pb-label">Female, joining at 30</div><div class="pb-val">$254<span style="font-size:13px;font-weight:600">/yr</span></div><div class="pb-sub" id="sub-female">before subsidy</div></div>
+            </div>
+            <div class="amber-note" id="age-note-box" style="display:none"></div>
+            <div class="terms-note" style="margin-top:14px">2026 reference rate, before any subsidy. MOH does not publish a full rate table by age &mdash; only your personalised premium, via the official calculator or your CPF dashboard, is authoritative.</div>
+          </div>
+
+          <div class="card">
+            <div class="chart-title">CareShield Life payout schedule</div>
+            <div class="chart-sub">Monthly cash payout if you're assessed as severely disabled, for as long as that lasts.</div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead><tr><th>Year</th><th class="num">Monthly payout</th></tr></thead>
+                <tbody>
+                  <tr><td>2026</td><td class="num">$689</td></tr>
+                  <tr><td>2027</td><td class="num">$717</td></tr>
+                  <tr><td>2028</td><td class="num">$745</td></tr>
+                  <tr><td>2029</td><td class="num">$775</td></tr>
+                  <tr><td>2030</td><td class="num">$806</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="terms-note" style="margin-top:12px">Payouts are set to grow about 4% a year through 2030 (up from 2% previously), then continue rising periodically as the CareShield Life Council reviews the scheme. The amount depends on the year you claim, not your age or joining date.</div>
+          </div>
+
+          <div class="card">
+            <div class="chart-title">Thinking about extra cover?</div>
+            <div class="chart-sub">CareShield Life alone pays a base amount. Private "CareShield Life Supplements" top this up for a higher monthly payout. Example rates below are for joining at age 30 with a $600/month top-up (on top of the CareShield Life base payout) &mdash; the most common starting point.</div>
+            <div class="table-scroll">
+              <table class="data-table" id="supplement-table">
+                <thead>
+                  <tr><th>Plan</th><th class="num">Male /mo</th><th class="num">Female /mo</th><th>Payable to</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Singlife CareShield Standard</td><td class="num" data-g="male">$268</td><td class="num" data-g="female">$328</td><td>Age 99</td></tr>
+                  <tr><td>Singlife CareShield Plus</td><td class="num" data-g="male">$316</td><td class="num" data-g="female">$389</td><td>Age 99</td></tr>
+                  <tr><td>Great Eastern CareShield Enhanced</td><td class="num" data-g="male">$227</td><td class="num" data-g="female">$305</td><td>Age 80</td></tr>
+                  <tr><td>Great Eastern CareShield Advantage</td><td class="num" data-g="male">$277</td><td class="num" data-g="female">$380</td><td>Age 80</td></tr>
+                  <tr><td>Great Eastern CareShield Supreme</td><td class="num" data-g="male">$292</td><td class="num" data-g="female">$390</td><td>Age 95</td></tr>
+                  <tr><td>Income Care Secure Pro</td><td class="num" data-g="male">$287</td><td class="num" data-g="female">$356</td><td>Age 99</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="terms-note" style="margin-top:12px">Source: government-published CareShield Life Supplement comparison, Sep 2025, entry age 30, $600/month benefit tier. Rates are reviewed periodically and will differ at other ages or benefit levels &mdash; we'll get you the current rate for your exact age.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-panel">
+        <div>
+          <h3>Want your exact premium and a plan recommendation?</h3>
+          <p>Chat with our Smart Adviser about CareShield Life and whether a Supplement makes sense for you &mdash; free, and takes a couple of minutes.</p>
+        </div>
+        <a href="index.html#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open(window.__csChatContext);return false;}">Chat now &mdash; it's free</a>
+      </div>
+
+      <p class="footnote">For planning discussion only &mdash; not financial advice, and not a MOH or CPF Board product.</p>
+      <details class="footnote">
+        <summary>Sources &amp; how we worked this out</summary>
+        <p>Enrolment rules, premium payment period, and payout mechanics: CPF Board's <a href="https://www.cpf.gov.sg/member/healthcare-financing/careshield-life" target="_blank" rel="noopener">CareShield Life</a> pages and <a href="https://www.cpf.gov.sg/member/healthcare-financing/careshield-life/careshield-premiums-and-subsidies" target="_blank" rel="noopener">premiums and subsidies</a> page. Income-based subsidy tiers (30%/25%/20% of premium for Singapore Citizens with monthly household income per person of $1,500, $1,501&ndash;2,600 and $2,601&ndash;3,600 respectively; half those rates for Permanent Residents) are also from that CPF Board page; subsidies are further affected by your home's annual value, which isn't captured here. The $206 (male) / $254 (female) reference premium for joining at age 30 comes from MOH's 2026 CareShield Life premium figures, consistent with MOH's original 2020 launch figures ($206 / $253) for the same entry age &mdash; the one point in the age range with a clearly published, consistent source. We deliberately do not show a projected premium for other entry ages: MOH does not publish a full rate table, and an earlier attempt by a third-party site to fill those gaps with an extrapolated table was pulled down after being flagged as misleading. The 2026&ndash;2030 payout schedule and the ~4%/year growth rate are from the CareShield Life Council's 2025 review, accepted by the Government. CareShield Life Supplement premiums are from the government's official comparison of supplement plans (Sep 2025 edition), for entry age 30 and a $600/month benefit tier only.</p>
+      </details>
+    </div>
+  </section>
+</main>
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="brand" style="margin-bottom:10px">Provident Financial Planning Pte Ltd</div>
+      <p class="disclaimer">The information on this website is general and does not take into account your specific objectives, financial situation or needs. Policy terms, conditions and exclusions apply. Please speak with us before making any decision.</p>
+    </div>
+    <div>&copy; <span id="yr"></span> Provident Financial Planning Pte Ltd</div>
+  </div>
+</footer>
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+<script>
+(function () {
+  var btn = document.getElementById('nav-toggle');
+  var menu = document.getElementById('mobile-menu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function () {
+    var open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.innerHTML = open ? '&times;' : '&#9776;';
+  });
+  menu.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = '&#9776;';
+    });
+  });
+})();
+</script>
+<script src="careshield-life-calculator.js"></script>
+<script src="https://ai.providentfpsg.com/widget.js" defer></script>
+</body>
+</html>
