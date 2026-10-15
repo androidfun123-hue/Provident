@@ -156,6 +156,13 @@
   .payout-meta strong { display: block; font-size: 17px; font-weight: 700; color: var(--navy); text-transform: none; letter-spacing: 0; margin-top: 4px; }
   .chart-title { font-size: 16.5px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
   .chart-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 14px; }
+  .chart-wrap { position: relative; }
+  .chart-wrap svg { display: block; touch-action: pan-y; }
+  .chart-tooltip { position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transform: translate(-50%, -100%); transition: opacity .1s; background: var(--navy); color: #fff; font-size: 12.5px; line-height: 1.55; padding: 8px 11px; border-radius: 8px; white-space: nowrap; box-shadow: 0 8px 20px rgba(15,42,74,.25); z-index: 6; }
+  .chart-tooltip.show { opacity: 1; }
+  .chart-tooltip .tt-age { display: block; font-size: 11px; font-weight: 700; color: #8fe0bb; letter-spacing: .02em; margin-bottom: 2px; }
+  .chart-tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
+  .chart-tooltip .tt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   table.payout-table { width: 100%; border-collapse: collapse; font-size: 15px; }
   table.payout-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
   table.payout-table td { padding: 10px 10px; border-bottom: 1px solid var(--line); color: var(--ink); }
@@ -310,7 +317,15 @@
             <div class="field" id="sac-field">
               <div class="field-label">Yearly SA contributions <span class="val" id="v-sac">$0</span></div>
               <input type="range" id="sac" min="0" max="12000" step="250" value="0">
-              
+
+            </div>
+            <div class="field">
+              <div class="field-label">Retirement sum target</div>
+              <div class="pillgroup" id="topup-group">
+                <button data-topup="false" class="active" type="button">Up to FRS (automatic)</button>
+                <button data-topup="true" type="button">Top up to ERS</button>
+              </div>
+              <div class="field-note" id="topup-note"></div>
             </div>
           </div>
           <div>
@@ -395,13 +410,19 @@
           <div class="card">
             <div class="chart-title">How your savings grow over time</div>
             <div class="chart-sub">Grows at CPF's rates: 2.5% a year on OA, 4% on SA/RA, plus extra interest on your first $60,000.</div>
-            <svg id="chart-balance" viewBox="0 0 640 260" style="width:100%;height:auto"></svg>
+            <div class="chart-wrap">
+              <svg id="chart-balance" viewBox="0 0 640 260" style="width:100%;height:auto"></svg>
+              <div class="chart-tooltip" id="tooltip-balance"></div>
+            </div>
           </div>
 
           <div class="card">
             <div class="chart-title">Payout if you start earlier or later</div>
             <div class="chart-sub">The bigger dot is your chosen start age.</div>
-            <svg id="chart-payout" viewBox="0 0 640 200" style="width:100%;height:auto"></svg>
+            <div class="chart-wrap">
+              <svg id="chart-payout" viewBox="0 0 640 200" style="width:100%;height:auto"></svg>
+              <div class="chart-tooltip" id="tooltip-payout"></div>
+            </div>
             <details class="card-details">
               <summary>Show exact amounts</summary>
               <table class="payout-table">
@@ -414,7 +435,10 @@
           <details class="card card-collapsible">
             <summary><span class="chart-title">What your family could receive (bequest)</span><span class="chart-sub">Illustrative &mdash; tap to view</span></summary>
             <div class="chart-sub" style="margin-top:12px">Roughly what's left for your beneficiaries under each plan. Bold line = your plan.</div>
-            <svg id="chart-bequest" viewBox="0 0 640 260" style="width:100%;height:auto"></svg>
+            <div class="chart-wrap">
+              <svg id="chart-bequest" viewBox="0 0 640 260" style="width:100%;height:auto"></svg>
+              <div class="chart-tooltip" id="tooltip-bequest"></div>
+            </div>
             <div class="terms-note" style="margin-top:10px">A simplified illustration &mdash; CPF doesn't publish an exact bequest formula. For your real figure, use the <a href="https://www.cpf.gov.sg/lifeestimator" target="_blank" rel="noopener">official CPF LIFE Estimator</a>.</div>
           </details>
         </div>

@@ -147,7 +147,17 @@
     near55: { age: 58, oa: 20000, sa: 160000, ma: 60000, oac: 0, sac: 0 },
   };
 
-  var state = { plan: "standard" };
+  var TOPUP_NOTES = {
+    false: "CPF only forms your Retirement Account up to the Full Retirement Sum on its own.",
+    true: "Simulates topping up from your OA — whenever there's a balance available — to reach the Enhanced Retirement Sum each year. In real life this also works with cash, from you or a family member.",
+  };
+
+  var state = { plan: "standard", topup: false };
+  // Populated by each render*Chart() call with the current chart's hover
+  // points (in SVG viewBox units) and a formatter, so setupChartTooltip()
+  // (bound once, at init) always reads live data without re-binding
+  // listeners on every recalc().
+  var hover = {};
 
   function $(id) {
     return document.getElementById(id);
@@ -182,6 +192,76 @@
     if (!isFinite(n)) n = 0;
     if (Math.abs(n) >= 1000) return "$" + Math.round(n / 1000) + "k";
     return "$" + Math.round(n);
+  }
+
+  // Finds the hover point whose x (in SVG viewBox units) is closest to vx.
+  function nearestPoint(points, vx) {
+    var best = points[0], bestDist = Math.abs(points[0].vx - vx);
+    for (var i = 1; i < points.length; i++) {
+      var d = Math.abs(points[i].vx - vx);
+      if (d < bestDist) {
+        bestDist = d;
+        best = points[i];
+      }
+    }
+    return best;
+  }
+
+  // A plan's bequest line ends once the balance hits zero, so a later age
+  // (from a plan that lasts longer) has no matching point for it — treat
+  // that as already depleted (0) rather than missing.
+  function valueAtAge(points, age) {
+    for (var i = 0; i < points.length; i++) {
+      if (points[i].age === age) return points[i].value;
+    }
+    var last = points[points.length - 1];
+    return age > last.age ? 0 : last.value;
+  }
+
+  // Binds one pointer-based tooltip handler per chart, once, at init. Each
+  // render*Chart() call refreshes hover[chartKey] with that chart's current
+  // points and formatter, so the handler always reads fresh data without
+  // needing to be re-bound on every recalc().
+  //
+  // Pointer Events (not separate mouse/touch listeners) deliberately: a
+  // touch tap makes the browser also synthesize legacy mouseleave/mousemove
+  // events right after, which would otherwise race with and immediately
+  // hide a tap-shown tooltip. Listening only to pointer* events sidesteps
+  // that compatibility-event noise entirely.
+  function setupChartTooltip(chartKey, svgId, tooltipId) {
+    var svg = $(svgId);
+    var tooltip = $(tooltipId);
+    if (!svg || !tooltip) return;
+    var wrap = svg.parentElement;
+
+    function show(clientX, clientY) {
+      var data = hover[chartKey];
+      if (!data || !data.points.length) return;
+      var rect = svg.getBoundingClientRect();
+      if (!rect.width) return;
+      var scale = rect.width / data.viewBoxW;
+      var vx = (clientX - rect.left) / scale;
+      var pt = nearestPoint(data.points, vx);
+      var wrapRect = wrap.getBoundingClientRect();
+      tooltip.innerHTML = data.format(pt);
+      tooltip.style.left = (rect.left - wrapRect.left + pt.vx * scale) + "px";
+      tooltip.style.top = (rect.top - wrapRect.top + pt.vy * scale - 10) + "px";
+      tooltip.classList.add("show");
+    }
+
+    svg.addEventListener("pointerdown", function (e) {
+      show(e.clientX, e.clientY);
+    });
+    svg.addEventListener("pointermove", function (e) {
+      show(e.clientX, e.clientY);
+    });
+    // Only a real mouse leaving hides on its own; a finger lifting (touch)
+    // deliberately doesn't, so a tap's result stays readable. Those stay
+    // pinned until the visitor taps elsewhere (see init()'s document-level
+    // pointerdown listener).
+    svg.addEventListener("pointerleave", function (e) {
+      if (e.pointerType === "mouse") tooltip.classList.remove("show");
+    });
   }
 
   function fmtPct(n) {
@@ -346,7 +426,7 @@
       oarate: OA_RATE,
       sarate: SA_RATE,
       payoutAge: Number($("payoutage").value),
-      topup: false,
+      topup: state.topup,
     };
   }
 
@@ -532,6 +612,28 @@
     out += '<text x="' + (padL + 280) + '" y="14" font-size="10" fill="#1c2530">Biggest goal (ERS)</text>';
 
     svg.innerHTML = out;
+
+    hover.balance = {
+      viewBoxW: W,
+      points: series.map(function (s) {
+        return { vx: x(s.age), vy: y(s.combined), age: s.age, combined: s.combined, oaLeft: s.oaLeft, ers: s.ers };
+      }),
+      format: function (pt) {
+        var html = '<span class="tt-age">Age ' + pt.age + "</span>";
+        html +=
+          '<div class="tt-row"><span class="tt-dot" style="background:#1f9d6b"></span>Your savings: ' +
+          fmtMoney(pt.combined) + "</div>";
+        if (pt.oaLeft > 0.5) {
+          html +=
+            '<div class="tt-row"><span class="tt-dot" style="background:#9aa7b8"></span>Extra OA: ' +
+            fmtMoney(pt.oaLeft) + "</div>";
+        }
+        html +=
+          '<div class="tt-row"><span class="tt-dot" style="background:#92620a"></span>Biggest goal (ERS): ' +
+          fmtMoney(pt.ers) + "</div>";
+        return html;
+      },
+    };
   }
 
   function renderPayoutChart(payout65std, planFactor, payoutAge) {
@@ -582,6 +684,20 @@
     });
 
     svg.innerHTML = out;
+
+    hover.payout = {
+      viewBoxW: W,
+      points: ages.map(function (age, i) {
+        return { vx: x(i), vy: y(vals[i]), age: age, val: vals[i] };
+      }),
+      format: function (pt) {
+        return (
+          '<span class="tt-age">Start at age ' + pt.age + (pt.age < 65 ? "*" : "") + "</span>" +
+          '<div class="tt-row"><span class="tt-dot" style="background:#1f9d6b"></span>' +
+          fmtMoney(pt.val) + "/month</div>"
+        );
+      },
+    };
   }
 
   // Projects each plan's illustrative bequest balance forward, year by
@@ -705,6 +821,31 @@
     });
 
     svg.innerHTML = out;
+
+    hover.bequest = {
+      viewBoxW: W,
+      points: bequestData[selectedPlan].map(function (pt) {
+        return {
+          vx: x(pt.age),
+          vy: y(pt.value),
+          age: pt.age,
+          values: {
+            basic: valueAtAge(bequestData.basic, pt.age),
+            standard: valueAtAge(bequestData.standard, pt.age),
+            escalating: valueAtAge(bequestData.escalating, pt.age),
+          },
+        };
+      }),
+      format: function (pt) {
+        var html = '<span class="tt-age">Age ' + pt.age + "</span>";
+        plans.forEach(function (p) {
+          html +=
+            '<div class="tt-row"><span class="tt-dot" style="background:' + colors[p] + '"></span>' +
+            labels[p] + (p === selectedPlan ? " (yours)" : "") + ": " + fmtMoney(pt.values[p]) + "</div>";
+        });
+        return html;
+      },
+    };
   }
 
   function recalc() {
@@ -889,6 +1030,24 @@
 
     setupPillGroup("template-group", "data-template", function (key) {
       applyTemplate(key);
+    });
+
+    setupPillGroup("topup-group", "data-topup", function (v) {
+      state.topup = v === "true";
+      $("topup-note").textContent = TOPUP_NOTES[v];
+      recalc();
+    });
+    $("topup-note").textContent = TOPUP_NOTES[String(state.topup)];
+
+    setupChartTooltip("balance", "chart-balance", "tooltip-balance");
+    setupChartTooltip("payout", "chart-payout", "tooltip-payout");
+    setupChartTooltip("bequest", "chart-bequest", "tooltip-bequest");
+
+    document.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" || e.target.closest(".chart-wrap")) return;
+      document.querySelectorAll(".chart-tooltip.show").forEach(function (el) {
+        el.classList.remove("show");
+      });
     });
 
     var nowSums = retirementSumsForYear(CURRENT_YEAR, GOAL_GROWTH);
