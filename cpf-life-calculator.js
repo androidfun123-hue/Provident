@@ -164,6 +164,20 @@
     return sign + "$" + Math.round(Math.abs(n)).toLocaleString("en-US");
   }
 
+  // Shared copy for the "Plus $X left in your OA" lines at 55 and 65. When
+  // the RA hasn't reached ERS, that leftover OA is the exact thing people
+  // expect to count toward their retirement sum but doesn't automatically —
+  // CPF only forms/grows the RA up to FRS on its own, so this spells out why
+  // a large OA balance alone doesn't mean ERS is reached.
+  function oaLeftoverNote(oaAmount, raAmount, ersAmount, verb) {
+    if (oaAmount <= 0.5) return "";
+    var base = "Plus " + fmtMoney(oaAmount) + " " + verb + " your OA.";
+    if (raAmount < ersAmount - 0.5) {
+      base += " That stays in your OA and won't count toward your Retirement Sum unless you top it up into your RA.";
+    }
+    return base;
+  }
+
   function fmtCompact(n) {
     if (!isFinite(n)) n = 0;
     if (Math.abs(n) >= 1000) return "$" + Math.round(n / 1000) + "k";
@@ -414,7 +428,9 @@
     } else if (ra65 >= frs65) {
       el.className = "gap-msg ok";
       el.innerHTML =
-        "<strong>You've reached the Full Retirement Sum</strong>A solid monthly payout. Reaching the Enhanced Retirement Sum would raise it further.";
+        "<strong>You've reached the Full Retirement Sum</strong>A solid monthly payout. " +
+        fmtMoney(ers65 - ra65) + " more in your Retirement Account would reach the Enhanced Retirement Sum for an even bigger one &mdash; but CPF won't move it there on its own. You (or a family member) would need to top it up: cash, or a transfer from your own OA, up to that year's ERS cap." +
+        ADVISER_CTA;
     } else if (ra65 >= brs65) {
       el.className = "gap-msg ok";
       el.innerHTML =
@@ -739,10 +755,7 @@
       $("t-ra55-sub").textContent = inputs.topup
         ? "Includes an OA top-up"
         : "As entered";
-      oaLeftoverLine55.innerHTML =
-        sim.oa55 > 0.5
-          ? "Plus " + fmtMoney(sim.oa55) + " in your OA."
-          : "";
+      oaLeftoverLine55.innerHTML = oaLeftoverNote(sim.oa55, sim.ra55, sim.ers55, "in");
     } else {
       if (raRow55) raRow55.style.display = "";
       if (raArrow55) raArrow55.style.display = "";
@@ -753,10 +766,7 @@
       $("t-ra55-sub").textContent = inputs.topup
         ? "Includes an OA top-up"
         : "";
-      oaLeftoverLine55.innerHTML =
-        sim.oa55 > 0.5
-          ? "Plus " + fmtMoney(sim.oa55) + " left in your OA."
-          : "";
+      oaLeftoverLine55.innerHTML = oaLeftoverNote(sim.oa55, sim.ra55, sim.ers55, "left in");
     }
 
     // BRS indicator — only surfaced when the projected RA falls short of
@@ -788,10 +798,7 @@
     $("t-ers65").textContent = fmtMoney(s65.ers);
     $("t-ra65").textContent = fmtMoney(s65.ra);
     markReachedTiles("65", s65.ra, brs65, frs65, s65.ers);
-    $("oa-leftover-line-65").innerHTML =
-      s65.oaLeft > 0.5
-        ? "Plus " + fmtMoney(s65.oaLeft) + " left in your OA."
-        : "";
+    $("oa-leftover-line-65").innerHTML = oaLeftoverNote(s65.oaLeft, s65.ra, s65.ers, "left in");
     updateGapMsg(s65.ra, s65.ers, frs65, brs65);
 
     // Payout
