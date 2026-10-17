@@ -466,14 +466,14 @@
       ageNote.textContent =
         "55+: results start from your current balances.";
       sacField.style.display = "none";
-      hdg55.textContent = "What you have today";
+      hdg55.textContent = "What You Have Today";
       sub55.textContent = "Your RA and OA, as entered.";
     } else {
       saLabel.textContent = "SA balance now";
       saNote.textContent = "Special Account. $0 is fine if unsure.";
       ageNote.textContent = "";
       sacField.style.display = "";
-      hdg55.textContent = "What you'll likely have by 55";
+      hdg55.textContent = "What You'll Likely Have by 55";
       sub55.textContent = "At 55, your OA and SA combine into a Retirement Account (RA).";
     }
   }
@@ -605,11 +605,11 @@
     out += '<path d="' + pathFor("combined") + '" fill="none" stroke="#1f9d6b" stroke-width="2.5"/>';
 
     out += '<rect x="' + padL + '" y="8" width="14" height="4" fill="#1f9d6b"/>';
-    out += '<text x="' + (padL + 20) + '" y="14" font-size="10" fill="#1c2530">Your savings</text>';
+    out += '<text x="' + (padL + 20) + '" y="14" font-size="10" fill="#1c2530">Your Savings</text>';
     out += '<rect x="' + (padL + 140) + '" y="8" width="14" height="4" fill="#9aa7b8"/>';
     out += '<text x="' + (padL + 160) + '" y="14" font-size="10" fill="#1c2530">Extra OA</text>';
     out += '<rect x="' + (padL + 260) + '" y="8" width="14" height="4" fill="#92620a"/>';
-    out += '<text x="' + (padL + 280) + '" y="14" font-size="10" fill="#1c2530">Biggest goal (ERS)</text>';
+    out += '<text x="' + (padL + 280) + '" y="14" font-size="10" fill="#1c2530">Biggest Goal (ERS)</text>';
 
     svg.innerHTML = out;
 
