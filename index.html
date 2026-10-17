@@ -80,7 +80,6 @@
   .hv-art { position: absolute; left: -10px; bottom: -20px; width: 170px; height: 170px; z-index: 0; }
   .hv-badge { position: absolute; right: 10px; top: 0; background: #fff; border-radius: 999px; box-shadow: 0 12px 30px rgba(15,42,74,.12); padding: 10px 16px 10px 10px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--navy); z-index: 2; }
   .hv-badge i { width: 30px; height: 30px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-style: normal; }
-  .panel .art { width: 100%; max-width: 280px; height: auto; margin-bottom: 24px; display: block; }
   .why .w .ic { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; margin-bottom: 18px; }
   .why .w .ic svg { width: 26px; height: 26px; }
   .band .inner > .seal { position: absolute; right: 28px; bottom: 24px; width: 110px; opacity: .14; z-index: 0; }
@@ -121,19 +120,6 @@
   .pcard .go i { font-style: normal; width: 34px; height: 34px; border-radius: 50%; background: var(--green); display: grid; place-items: center; flex: none; transition: transform .2s; }
   .pcard:hover .go i { transform: translateX(3px); }
 
-  /* Adviser split */
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
-  .checks { list-style: none; display: grid; gap: 22px; }
-  .checks li { display: flex; gap: 16px; }
-  .checks .ck { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: grid; place-items: center; }
-  .checks .ck svg { width: 16px; height: 16px; }
-  .checks strong { display: block; color: var(--navy); font-size: 17px; margin-bottom: 2px; }
-  .checks span { color: var(--muted); font-size: 15px; }
-  .panel { background: var(--navy); color: #fff; border-radius: 28px; padding: 48px; position: relative; overflow: hidden; }
-  .panel::after { content: ""; position: absolute; right: -80px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(31,157,107,.45), transparent 70%); }
-  .panel > * { position: relative; z-index: 1; }
-  .panel h3 { font-size: 28px; letter-spacing: -.02em; line-height: 1.2; margin-bottom: 12px; }
-  .panel p { color: #c9d6e6; margin-bottom: 28px; font-size: 16px; }
 
   /* Coverage tabs */
   .tabs { display: inline-flex; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px; margin-bottom: 36px; }
@@ -193,7 +179,7 @@
     .f-brand { grid-column: 1 / -1; }
   }
   @media (max-width: 900px) {
-    .hero .wrap, .split, .band .inner { grid-template-columns: 1fr; }
+    .hero .wrap, .band .inner { grid-template-columns: 1fr; }
     .hero-visual { min-height: 380px; max-width: 460px; }
     .pcards, .pcards.two { grid-template-columns: 1fr; }
     .pcard { min-height: 400px; }
@@ -212,15 +198,14 @@
     .nav .btn { padding: 8px 14px; font-size: 13px; }
     .hero { padding: 48px 0 64px; }
     .hero p.lead { font-size: 17px; }
-    .ctas .btn, .band .btn, .panel .btn { width: 100%; white-space: normal; text-align: center; }
+    .ctas .btn, .band .btn { width: 100%; white-space: normal; text-align: center; }
     .hero-visual { min-height: 470px; }
     .hv-main { inset: 20px 0 120px 0; }
     .hv-art { width: 120px; height: 120px; left: -6px; bottom: -10px; }
     .hv-chat { width: 78%; bottom: 10px; }
     .sec { padding: 72px 0; }
     .cards, .why { grid-template-columns: 1fr; }
-    .panel { padding: 32px 24px; }
-    .band { padding-bottom: 72px; }
+      .band { padding-bottom: 72px; }
     .band .inner { padding: 40px 24px; border-radius: 24px; }
     .tabs { display: flex; }
     .tabs button { flex: 1; padding: 10px 12px; }
@@ -238,7 +223,6 @@
     <ul>
       <li><a href="#services">Insurance</a></li>
       <li><a href="#tools">Free Calculators</a></li>
-      <li><a href="#adviser">Smart Adviser</a></li>
       <li><a href="#why">Why Us</a></li>
     </ul>
     <button id="nav-toggle" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">&#9776;</button>
@@ -247,7 +231,6 @@
       <ul>
         <li><a href="#services">Insurance</a></li>
         <li><a href="#tools">Free Calculators</a></li>
-        <li><a href="#adviser">Smart Adviser</a></li>
         <li><a href="#why">Why Us</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
@@ -319,29 +302,6 @@
     </div>
   </section>
 
-  <section id="adviser" class="sec tint">
-    <div class="wrap split">
-      <div>
-        <div class="head" style="margin-bottom:36px">
-          <span class="kicker">Smart Insurance Adviser</span>
-          <h2>Get Matched to the Right Cover in Minutes, Not Days</h2>
-          <p>Our AI-powered adviser asks the questions a real adviser would, so our team comes back with options that actually fit, not a generic quote.</p>
-        </div>
-        <ul class="checks">
-          <li><div class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div><strong>Available Anytime</strong><span>Chat right now, right here &mdash; no appointment or phone call needed.</span></div></li>
-          <li><div class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div><strong>Asks the Right Questions</strong><span>Sum insured, budget and the underwriting details that actually shape your quote.</span></div></li>
-          <li><div class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div><strong>Goes Straight to a Person</strong><span>Your answers reach a real adviser who follows up personally &mdash; no bot ever decides your cover.</span></div></li>
-        </ul>
-      </div>
-      <div class="panel">
-        <svg class="art" viewBox="0 0 280 120" aria-hidden="true"><rect x="0" y="8" width="170" height="44" rx="16" fill="#173a63"/><rect x="16" y="22" width="110" height="6" rx="3" fill="#9fb4cc"/><rect x="16" y="34" width="70" height="6" rx="3" fill="#9fb4cc"/><rect x="100" y="64" width="180" height="44" rx="16" fill="#1f9d6b"/><rect x="116" y="78" width="120" height="6" rx="3" fill="#e8f5ee"/><rect x="116" y="90" width="80" height="6" rx="3" fill="#e8f5ee"/><circle cx="252" cy="30" r="20" fill="#e8f5ee"/><path d="M243 30l6 6 11-12" stroke="#1f9d6b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <h3>Try It Now &mdash; Takes About 2 Minutes</h3>
-        <p>Free, instant, and no obligation. You'll know what to do next before you close this tab.</p>
-        <a href="#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Chat with Our Smart Insurance Adviser</a>
-      </div>
-    </div>
-  </section>
-
   <section id="services" class="sec">
     <div class="wrap">
       <div class="head">
@@ -405,13 +365,14 @@
     </div>
   </section>
 
+  <div id="adviser" style="scroll-margin-top:80px"></div>
   <section id="contact" class="sec band" style="padding-top:88px">
     <div class="wrap">
       <div class="inner">
         <svg class="seal" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         <div>
           <h2>Let's Review Your Cover</h2>
-          <p>Not sure what you need? Chat with our Smart Insurance Adviser, or reach us directly. We'll get back to you either way.</p>
+          <p>Not sure what you need? Our Smart Insurance Adviser asks the right questions in about 2 minutes, then a real adviser follows up personally. Or reach us directly.</p>
         </div>
         <div class="actions">
           <a href="#contact" class="btn btn-primary" onclick="if(window.PFPWidget){window.PFPWidget.open();return false;}">Chat with Our Smart Insurance Adviser</a>
@@ -434,7 +395,7 @@
         <ul>
           <li><a href="#services">Business &amp; Home</a></li>
           <li><a href="#personal" data-open-tab="personal">Personal &amp; Life</a></li>
-          <li><a href="#adviser">Smart Adviser</a></li>
+          <li><a href="#contact">Smart Adviser</a></li>
         </ul>
       </div>
       <div>
