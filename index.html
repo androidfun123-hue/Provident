@@ -78,8 +78,6 @@
   .hv-chat p { font-size: 15px; line-height: 1.45; }
 
   .hv-art { position: absolute; left: -10px; bottom: -20px; width: 170px; height: 170px; z-index: 0; }
-  .hv-badge { position: absolute; right: 10px; top: 0; background: #fff; border-radius: 999px; box-shadow: 0 12px 30px rgba(15,42,74,.12); padding: 10px 16px 10px 10px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--navy); z-index: 2; }
-  .hv-badge i { width: 30px; height: 30px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-style: normal; }
   .why .w .ic { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; margin-bottom: 18px; }
   .why .w .ic svg { width: 26px; height: 26px; }
   .band .inner > .seal { position: absolute; right: 28px; bottom: 24px; width: 110px; opacity: .14; z-index: 0; }
@@ -191,7 +189,7 @@
   }
   @media (max-width: 900px) {
     .hero .wrap, .band .inner { grid-template-columns: 1fr; }
-    .hero-visual { min-height: 380px; max-width: 460px; }
+    .hero-visual { display: none; }
     .pcards { grid-template-columns: 1fr; }
     .pcard { min-height: 400px; }
           .steps { grid-template-columns: 1fr; gap: 28px; }
@@ -202,7 +200,6 @@
     .nav { height: 64px; }
     .brand small { display: none; }
     .paths { grid-template-columns: 1fr; }
-    .hero-visual { display: none; }
     .hero { padding: 56px 0 64px; }
     .card.photo img { aspect-ratio: 2 / 1; }
     .cards.three > .card.photo:last-child:nth-child(3n+1) { flex-direction: column; }
@@ -269,7 +266,6 @@
       </div>
       <div class="hero-visual" aria-hidden="true">
         <svg class="hv-art" viewBox="0 0 220 220"><circle cx="110" cy="110" r="100" fill="#e8f5ee"/><circle cx="110" cy="110" r="72" fill="#d3eedf"/><path d="M110 50l46 17v38c0 32-21 52-46 63-25-11-46-31-46-63V67z" fill="#1f9d6b"/><path d="M110 62l36 13v30c0 25-16 41-36 50z" fill="#17845a"/><circle cx="96" cy="100" r="9" fill="#fff"/><circle cx="124" cy="100" r="9" fill="#fff"/><path d="M80 134c2-13 9-20 16-20s14 7 16 20zM108 134c2-13 9-20 16-20s14 7 16 20z" fill="#fff"/><circle cx="110" cy="117" r="6" fill="#fbf1e3"/><path d="M101 136c1-9 5-13 9-13s8 4 9 13z" fill="#fbf1e3"/></svg>
-        <div class="hv-badge"><i>&#10003;</i>Protected &amp; planned</div>
         <div class="hv-card hv-main">
           <h4>Your cover, in one place</h4>
           <div class="hv-row"><div class="dot" style="background:var(--mint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></div><div><b>Corporate Insurance</b><span>Property, marine, WICA</span></div><div class="tick">&#10003;</div></div>
