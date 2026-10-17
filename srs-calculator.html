@@ -120,7 +120,7 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
       <a href="index.html#services">Coverage</a>
       <a href="index.html#contact">Contact</a>
     </nav>
-    <a class="btn" href="https://wa.me/6568072250" target="_blank" rel="noopener">Get a quote</a>
+    <a class="btn" href="https://wa.me/6568072250" target="_blank" rel="noopener">Get a Quote</a>
   </div>
 </header>
 
@@ -160,7 +160,7 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
 
       <div class="card" style="margin-top:16px">
         <p class="step"><i>2</i> Your SRS top-up</p>
-        <label class="f" for="srs">Amount to contribute this year</label>
+        <label class="f" for="srs">Amount to Contribute This Year</label>
         <div class="money"><span>S$</span><input id="srs" inputmode="numeric" value="" placeholder="e.g. 15,300"></div>
         <input type="range" id="srsRange" min="0" max="15300" step="100" value="0" aria-label="SRS contribution">
         <div class="rangeval"><span>S$0</span><b id="capLbl">Max S$15,300</b></div>
@@ -170,9 +170,9 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
 
       <div class="card" style="margin-top:16px">
         <p class="step"><i>3</i> Growth (optional)</p>
-        <label class="f" for="age">Your age now</label>
+        <label class="f" for="age">Your Age Now</label>
         <div class="money"><input id="age" inputmode="numeric" value="" placeholder="e.g. 35"><span class="suf">years</span></div>
-        <label class="f" for="ret">Expected investment return per year</label>
+        <label class="f" for="ret">Expected Investment Return per Year</label>
         <div class="money"><input id="ret" inputmode="decimal" value="" placeholder="e.g. 4"><span class="suf">%</span></div>
         <p class="hint">Leave blank to skip. Uninvested SRS cash earns only about 0.05% a year. An illustration, not a forecast.</p>
       </div>
@@ -193,16 +193,16 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
       </div>
       <div id="results" hidden>
       <div class="card compare">
-        <h3>With SRS vs without SRS</h3>
+        <h3>With SRS vs Without SRS</h3>
         <table>
           <thead><tr><th></th><th class="num">Without SRS</th><th class="num">With SRS</th></tr></thead>
           <tbody>
-            <tr><td>Your annual income</td><td class="num" id="cInc1">–</td><td class="num" id="cInc2">–</td></tr>
-            <tr><td>Less: personal tax relief</td><td class="num" id="cRel1">–</td><td class="num" id="cRel2">–</td></tr>
-            <tr><td>Less: SRS contribution</td><td class="num">–</td><td class="num" id="cSrs">–</td></tr>
-            <tr class="sum"><td>Chargeable income</td><td class="num" id="cTi1">–</td><td class="num" id="cTi2">–</td></tr>
-            <tr class="sum"><td>Income tax payable</td><td class="num" id="cTax1">–</td><td class="num" id="cTax2">–</td></tr>
-            <tr class="save"><td>Your tax savings</td><td class="num"></td><td class="num" id="cSave">–</td></tr>
+            <tr><td>Your Annual Income</td><td class="num" id="cInc1">–</td><td class="num" id="cInc2">–</td></tr>
+            <tr><td>Less: Personal Tax Relief</td><td class="num" id="cRel1">–</td><td class="num" id="cRel2">–</td></tr>
+            <tr><td>Less: SRS Contribution</td><td class="num">–</td><td class="num" id="cSrs">–</td></tr>
+            <tr class="sum"><td>Chargeable Income</td><td class="num" id="cTi1">–</td><td class="num" id="cTi2">–</td></tr>
+            <tr class="sum"><td>Income Tax Payable</td><td class="num" id="cTax1">–</td><td class="num" id="cTax2">–</td></tr>
+            <tr class="save"><td>Your Tax Savings</td><td class="num"></td><td class="num" id="cSave">–</td></tr>
           </tbody>
         </table>
         <p class="small" id="capLine" hidden></p>
@@ -219,7 +219,7 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
       </div>
 
       <div class="card">
-        <h3>Tax this year</h3>
+        <h3>Tax This Year</h3>
         <div class="bars">
           <div class="bar"><span>Without SRS</span><div class="track"><div class="fill" id="b1"></div></div><b id="b1v">–</b></div>
           <div class="bar"><span>With SRS</span><div class="track"><div class="fill after" id="b2"></div></div><b id="b2v">–</b></div>
@@ -228,20 +228,20 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
       </div>
 
       <div class="card" style="margin-top:16px" id="growSkip" hidden>
-        <h3>See what your SRS could grow to</h3>
+        <h3>See What Your SRS Could Grow To</h3>
         <p class="small" style="margin:4px 0 0">Add your age (and an expected return) in step 3, then click Calculate.</p>
       </div>
       <div class="card" style="margin-top:16px" id="growCard">
-        <h3>If you top up this amount every year</h3>
+        <h3>If You Top Up This Amount Every Year</h3>
         <p class="sub" id="growSub">Until your SRS retirement age of 64.</p>
         <table>
           <tbody>
-            <tr><td>Years of contributions</td><td class="num" id="gYears">–</td></tr>
-            <tr><td>Total put in</td><td class="num" id="gIn">–</td></tr>
-            <tr><td>Total tax saved along the way</td><td class="num" id="gTax">–</td></tr>
-            <tr><td>Estimated SRS balance at 64</td><td class="num"><b id="gBal">–</b></td></tr>
-            <tr><td>Spread over 10 years from 64, about</td><td class="num" id="gYearly">–</td></tr>
-            <tr><td>Tax on each year's withdrawal if it's your only income</td><td class="num" id="gWtax">–</td></tr>
+            <tr><td>Years of Contributions</td><td class="num" id="gYears">–</td></tr>
+            <tr><td>Total Put In</td><td class="num" id="gIn">–</td></tr>
+            <tr><td>Total Tax Saved Along the Way</td><td class="num" id="gTax">–</td></tr>
+            <tr><td>Estimated SRS Balance at 64</td><td class="num"><b id="gBal">–</b></td></tr>
+            <tr><td>Spread Over 10 Years From 64, About</td><td class="num" id="gYearly">–</td></tr>
+            <tr><td>Tax on Each Year's Withdrawal if It's Your Only Income</td><td class="num" id="gWtax">–</td></tr>
           </tbody>
         </table>
         <p class="small" style="margin-top:10px">Assumes today's tax rates and caps, and the same tax saving every year. Only 50% of what you withdraw from 64 onwards is taxed, so up to S$40,000 a year can come out tax-free if you have no other income.</p>
@@ -251,33 +251,33 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
   </div>
 
   <section class="section">
-    <h2>Why people use SRS</h2>
+    <h2>Why People Use SRS</h2>
     <p class="sub">A voluntary retirement account that sits alongside CPF.</p>
     <div class="cols3">
-      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><path d="M4 19h16M7 15l4-4 3 3 5-6"/></svg></div><h3>Lower tax now</h3><p>Each dollar you put in comes off your taxable income, up to the yearly cap.</p></div>
-      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg></div><h3>Tax-free growth</h3><p>Investment gains inside SRS aren't taxed while they stay in the account.</p></div>
-      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></div><h3>Half-taxed in retirement</h3><p>From your SRS retirement age, only 50% of each withdrawal counts as income, over up to 10 years.</p></div>
+      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><path d="M4 19h16M7 15l4-4 3 3 5-6"/></svg></div><h3>Lower Tax Now</h3><p>Each dollar you put in comes off your taxable income, up to the yearly cap.</p></div>
+      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg></div><h3>Tax-Free Growth</h3><p>Investment gains inside SRS aren't taxed while they stay in the account.</p></div>
+      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></div><h3>Half-Taxed in Retirement</h3><p>From your SRS retirement age, only 50% of each withdrawal counts as income, over up to 10 years.</p></div>
     </div>
   </section>
 
   <section class="section">
-    <h2>Key rules at a glance</h2>
+    <h2>Key Rules at a Glance</h2>
     <table>
       <thead><tr><th>Rule</th><th>Citizens &amp; PRs</th><th>Foreigners</th></tr></thead>
       <tbody>
-        <tr><td>Yearly contribution cap</td><td>S$15,300</td><td>S$35,700</td></tr>
-        <tr><td>Deadline for this year's relief</td><td colspan="2">31 December (bank cut-off times apply)</td></tr>
-        <tr><td>Overall personal relief cap</td><td colspan="2">S$80,000 a year, including SRS</td></tr>
-        <tr><td>SRS retirement age</td><td colspan="2">Fixed by your first contribution: 63 if made before 1 Jul 2026, 64 from 1 Jul 2026</td></tr>
-        <tr><td>Withdrawals at or after that age</td><td colspan="2">50% taxable, no penalty; spread over up to 10 years</td></tr>
-        <tr><td>Withdrawals before that age</td><td colspan="2">100% taxable plus a 5% penalty (some exceptions, e.g. medical grounds)</td></tr>
-        <tr><td>Number of accounts</td><td colspan="2">One, with DBS, OCBC or UOB</td></tr>
+        <tr><td>Yearly Contribution Cap</td><td>S$15,300</td><td>S$35,700</td></tr>
+        <tr><td>Deadline for This Year's Relief</td><td colspan="2">31 December (bank cut-off times apply)</td></tr>
+        <tr><td>Overall Personal Relief Cap</td><td colspan="2">S$80,000 a year, including SRS</td></tr>
+        <tr><td>SRS Retirement Age</td><td colspan="2">Fixed by your first contribution: 63 if made before 1 Jul 2026, 64 from 1 Jul 2026</td></tr>
+        <tr><td>Withdrawals at or After That Age</td><td colspan="2">50% taxable, no penalty; spread over up to 10 years</td></tr>
+        <tr><td>Withdrawals Before That Age</td><td colspan="2">100% taxable plus a 5% penalty (some exceptions, e.g. medical grounds)</td></tr>
+        <tr><td>Number of Accounts</td><td colspan="2">One, with DBS, OCBC or UOB</td></tr>
       </tbody>
     </table>
   </section>
 
   <section class="section">
-    <h2>Common questions</h2>
+    <h2>Common Questions</h2>
     <details><summary>Is SRS worth it for me?</summary><p>It's most useful when your top tax rate is 7% or higher (chargeable income above S$40,000). Below that, the yearly saving is small and the money is locked up until retirement unless you pay a penalty. The calculator shows your top rate.</p></details>
     <details><summary>What happens if I just leave the money as cash?</summary><p>It earns very little interest. Most people invest SRS money in things like Singapore Savings Bonds, unit trusts, ETFs, shares or insurance plans to make it grow.</p></details>
     <details><summary>Can SRS be used for insurance?</summary><p>Yes. Some single-premium endowment and annuity plans can be bought with SRS money. Ask us which plans fit your retirement timeline.</p></details>
@@ -286,12 +286,12 @@ footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font
   </section>
 
   <div class="cta">
-    <div><h2>Want to plan your SRS and retirement together?</h2><p>Chat with us about how much to put in, where to invest it and when to withdraw. Free, no obligation.</p></div>
-    <a class="btn" href="https://wa.me/6568072250" target="_blank" rel="noopener">WhatsApp us</a>
+    <div><h2>Want to Plan Your SRS and Retirement Together?</h2><p>Chat with us about how much to put in, where to invest it and when to withdraw. Free, no obligation.</p></div>
+    <a class="btn" href="https://wa.me/6568072250" target="_blank" rel="noopener">WhatsApp Us</a>
   </div>
 
   <section class="section" style="border:0">
-    <details><summary>Sources &amp; how we worked this out</summary>
+    <details><summary>Sources &amp; How We Worked This Out</summary>
       <ul>
         <li>Tax is worked out with IRAS resident progressive rates (0% on the first S$20,000 up to 24% above S$1 million), with no YA 2026 rebate.</li>
         <li>Tax saved = tax on (income − reliefs) − tax on (income − reliefs − SRS), with total reliefs capped at S$80,000.</li>
