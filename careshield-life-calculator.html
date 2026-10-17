@@ -265,14 +265,14 @@
           </div>
 
           <div class="pitch-points">
-            <div class="pp"><strong>More monthly cash</strong><span>Choose an extra S$1,000 to S$2,000 a month on top of CareShield Life.</span></div>
+            <div class="pp"><strong>More monthly cash</strong><span>Choose an extra S$200 to S$5,000 a month on top of CareShield Life.</span></div>
             <div class="pp"><strong>Up to $600 a year from MediSave</strong><span>Part of the premium can be paid from MediSave, so less comes out of your pocket.</span></div>
             <div class="pp"><strong>Lower premiums when you start younger</strong><span>Rates are set by your age when you sign up, and rise with every few years you wait.</span></div>
           </div>
         </div>
 
         <div class="step-heading" style="margin-top:28px"><span class="step-num">3</span><h3>See your Singlife rate</h3></div>
-        <div class="amber-note" style="margin:6px 0 20px"><strong>Reference only.</strong> Singlife rates are shown for a few ages only (age next birthday 35, 40, 45, 50, 55, 60 and 65). Other ages use the next published age up, so your actual premium will differ. Contact us for your exact premium.</div>
+        <div style="height:12px"></div>
         <div class="calc-grid">
           <div class="input-card card">
             <div class="field">
@@ -301,13 +301,9 @@
               </div>
             </div>
             <div class="field">
-              <div class="field-label">Extra monthly payout</div>
-              <div class="pillgroup pillgroup-2col" id="sg-benefit-group">
-                <button data-sgbenefit="b1000" class="active" type="button">S$1,000</button>
-                <button data-sgbenefit="b1500" type="button">S$1,500</button>
-                <button data-sgbenefit="b2000" type="button">S$2,000</button>
-                <button data-sgbenefit="max" type="button">Max on MediSave</button>
-              </div>
+              <div class="field-label">Extra monthly payout <span class="val" id="v-benefit">S$1,000</span></div>
+              <input type="range" id="sg-benefit" min="200" max="5000" step="100" value="1000" aria-label="Extra monthly payout">
+              <div class="field-note">S$200 to S$5,000 a month, in S$100 steps.</div>
             </div>
           </div>
 
@@ -318,12 +314,13 @@
                 <div class="sg-result-row"><span class="sg-label">Extra payout</span><span class="sg-val" id="sg-benefit-val">&mdash;</span></div>
                 <div class="sg-result-row"><span class="sg-label">Total with CareShield Life (2026)</span><span class="sg-val" id="sg-total-val">&mdash;</span></div>
                 <div class="sg-result-row"><span class="sg-label">Annual premium, before discount</span><span class="sg-val" id="sg-gross">&mdash;</span></div>
+                <div class="sg-result-row"><span class="sg-label">Singlife online discount</span><span class="sg-val" id="sg-discount">&mdash;</span></div>
                 <div class="sg-result-row"><span class="sg-label">Annual premium, after online discount</span><span class="sg-val" id="sg-net">&mdash;</span></div>
                 <div class="sg-result-row sg-cash-row"><span class="sg-label">Cash payable after MediSave ($600/yr)</span><span class="sg-val" id="sg-cash">&mdash;</span></div>
               </div>
-              <div class="field-note" id="sg-anb-note" style="margin-top:8px"></div>
+              <div class="field-note" id="sg-max-note" style="margin-top:10px"></div>
               <div class="amber-note" id="sg-unavailable-note" style="display:none;margin-top:10px"></div>
-              <div class="terms-note">Singlife online direct-channel rates collected 17 Oct 2026. The online discount is a Singlife promotion and may change.</div>
+              <div class="terms-note">Indicative, based on Singlife's online direct-channel rates collected 17 Oct 2026 (no existing-policyholder offer). The online discount is a Singlife promotion and may change. Not a quote &mdash; contact us for your exact premium.</div>
               <a href="index.html#contact" class="btn btn-primary" style="margin-top:14px;width:100%" onclick="if(window.PFPWidget){window.PFPWidget.open(window.__csChatContext);return false;}">Get my exact premium</a>
               <button type="button" class="step-back" id="btn-back">&larr; Back to CareShield Life basics</button>
             </div>
