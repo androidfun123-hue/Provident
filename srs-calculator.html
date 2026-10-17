@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SRS Tax Savings Calculator | Provident Financial Planning</title>
+<meta name="description" content="Free SRS calculator for Singapore: see how much income tax an SRS contribution saves you, what it could grow to, and how withdrawals are taxed in retirement.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#14294b;--navy-2:#1d3a66;--green:#1f9d57;--green-soft:#e8f6ee;--ink:#1b2433;--muted:#5d6878;--line:#e3e7ee;--bg:#f6f8fb;--card:#fff;--amber-bg:#fdf3e1;--amber-line:#f1d29a;--amber-ink:#7a4b00}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.55;font-size:16px}
+a{color:var(--navy-2)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header.site{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line)}
+header.site .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--navy)}
+.brand svg{flex:none}
+.brand b{display:block;font-size:15px;line-height:1.2}
+.brand small{display:block;font-size:11px;color:var(--muted)}
+nav.main{display:flex;gap:22px;font-size:14px}
+nav.main a{text-decoration:none;color:#384456}
+nav.main a.on{color:var(--navy);font-weight:600}
+.btn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:10px 18px;border-radius:999px;border:0;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line)}
+.hero{background:var(--navy);color:#fff;padding:52px 0 44px}
+.eyebrow{color:#7fe0a8;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px}
+.hero h1{font-size:clamp(28px,4.4vw,40px);line-height:1.15;margin:0 0 14px;letter-spacing:-.01em}
+.hero p{max-width:620px;color:#d6deea;margin:0;font-size:17px}
+.note{background:var(--amber-bg);border:1px solid var(--amber-line);color:#5b4a2a;border-radius:10px;padding:14px 18px;font-size:14px;margin:28px 0 20px}
+.note b{color:var(--amber-ink)}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;margin-bottom:36px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;color:var(--navy)}
+.step i{font-style:normal;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px}
+label.f{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:8px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;padding:9px 6px;border-radius:6px;font:inherit;font-size:13px;color:#4a5566;cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff;font-weight:600}
+.money{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.money span{padding:0 10px;color:var(--muted);font-size:14px;background:var(--bg);align-self:stretch;display:flex;align-items:center;border-right:1px solid var(--line)}
+.money input{border:0;padding:10px;font:inherit;width:100%;min-width:0;outline:none}
+.money input::placeholder{color:#a3acba}
+.money span.suf{border-right:0;border-left:1px solid var(--line)}
+.money:focus-within{border-color:var(--navy-2);box-shadow:0 0 0 3px rgba(29,58,102,.12)}
+input[type=range]{width:100%;accent-color:var(--green);margin:8px 0 0}
+.rangeval{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.rangeval b{color:var(--ink)}
+.linkbtn{background:none;border:0;padding:0;color:var(--navy-2);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
+.res-top{background:var(--green-soft);border:1px solid #bfe6cf;border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.res-top .big{font-size:clamp(30px,5vw,40px);font-weight:800;color:#0f6b3a;line-height:1.1}
+.res-top p{margin:6px 0 0;color:#2f5940;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+.stat small{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat b{display:block;font-size:20px;margin-top:6px}
+.stat em{display:block;font-style:normal;font-size:12px;color:var(--muted)}
+.bars{margin:6px 0 4px}
+.bar{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;font-size:13px;margin:8px 0}
+.track{height:14px;background:var(--bg);border-radius:7px;overflow:hidden}
+.fill{height:100%;border-radius:7px;background:#9aa7ba;transition:width .3s}
+.fill.after{background:var(--green)}
+.bar b{text-align:right}
+h2{font-size:22px;margin:0 0 6px;color:var(--navy)}
+h3{font-size:17px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+td.num,th.num{text-align:right;white-space:nowrap}
+.section{padding:36px 0;border-top:1px solid var(--line)}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature{border:1px solid var(--line);border-radius:12px;padding:18px}
+.feature .ic{width:34px;height:34px;border-radius:9px;background:var(--green-soft);display:grid;place-items:center;margin-bottom:10px}
+.feature p{margin:0;font-size:14px;color:var(--muted)}
+details{border:1px solid var(--line);border-radius:10px;padding:0 16px;margin:10px 0;background:#fff}
+summary{cursor:pointer;padding:14px 0;font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::after{content:"+";color:var(--muted);font-weight:400}
+details[open] summary::after{content:"–"}
+details p,details ul{margin:0 0 14px;font-size:14px;color:#3b4656}
+.cta{background:var(--navy);color:#fff;border-radius:14px;padding:26px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.cta h2{color:#fff}
+.cta p{margin:0;color:#d6deea;font-size:15px}
+.small{font-size:12px;color:var(--muted)}
+footer{background:var(--bg);border-top:1px solid var(--line);padding:24px 0;font-size:13px;color:var(--muted);margin-top:30px}
+.warn{color:#9a3b00;font-size:12px;margin-top:6px}
+.actions{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:16px}
+.actions .btn{padding:12px;font-size:15px;text-align:center}
+.placeholder{border:1px dashed #cdd4df;border-radius:12px;padding:40px 24px;text-align:center;color:var(--muted);background:var(--bg)}
+.placeholder p{margin:10px 0 0;font-size:14px}
+.placeholder b{color:var(--ink)}
+.compare{margin-bottom:16px}
+.compare th.num,.compare td.num{width:26%}
+.compare tr.sum td{font-weight:600}
+.compare tr.save td{border-bottom:0;font-weight:700;color:#0f6b3a;font-size:16px;background:var(--green-soft)}
+.compare tr.save td:first-child{border-radius:8px 0 0 8px}.compare tr.save td:last-child{border-radius:0 8px 8px 0}
+#results{scroll-margin-top:80px}
+#results.flash{animation:fl .5s ease}
+@keyframes fl{from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:860px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.cols3{grid-template-columns:1fr}nav.main{display:none}}
+.btn{white-space:nowrap}
+@media (max-width:420px){.wrap{padding:0 16px}.brand small{display:none}header.site .btn{padding:8px 14px;font-size:13px}.bar{grid-template-columns:90px 1fr 78px}}
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 3 14h5l-5 6h7v8h10v-8h7l-5-6h5z" fill="#1f9d57"/><path d="M15 9l-6 6h4v13h4V15h4z" fill="#14294b"/></svg>
+      <span><b>Provident Financial Planning</b><small>General &amp; Life Insurance · Singapore</small></span>
+    </a>
+    <nav class="main" aria-label="Main">
+      <a href="index.html#adviser">Smart Adviser</a>
+      <a href="cpf-life-calculator.html">CPF LIFE</a>
+      <a href="careshield-life-calculator.html">CareShield Life</a>
+      <a class="on" href="srs-calculator.html">SRS</a>
+      <a href="index.html#services">Coverage</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="btn" href="https://wa.me/6568072250" target="_blank" rel="noopener">Get a quote</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Free tool for Singapore taxpayers</p>
+    <h1>SRS Tax Savings Calculator</h1>
+    <p>See how much income tax a Supplementary Retirement Scheme (SRS) top-up could save you this year, what it might grow into, and how it's taxed when you take it out in retirement.</p>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="note"><b>An estimate, not tax advice.</b> Uses IRAS resident tax rates for Year of Assessment 2026 (income earned in 2025) onwards, with no tax rebate. Your actual tax depends on your full set of reliefs and IRAS's assessment. Not made by or linked to IRAS, MOF or any bank.</div>
+
+  <div class="grid">
+    <!-- LEFT: inputs -->
+    <div>
+      <div class="card">
+        <p class="step"><i>1</i> Your details</p>
+        <label class="f">Residency</label>
+        <div class="seg" id="res">
+          <button type="button" class="on" data-v="local">Citizen / PR</button>
+          <button type="button" data-v="foreign">Foreigner</button>
+        </div>
+        <p class="hint" id="capHint">You can contribute up to S$15,300 a year.</p>
+
+        <label class="f" for="income">Your Annual Income</label>
+        <div class="money"><span>S$</span><input id="income" inputmode="numeric" value="" placeholder="e.g. 66,000" aria-describedby="incHint"></div>
+        <p class="hint" id="incHint">Salary plus bonuses for the year, before CPF.</p>
+        <p class="warn" id="incWarn" hidden>Please enter your annual income.</p>
+
+        <label class="f" for="relief">Your Personal Tax Relief</label>
+        <div class="money"><span>S$</span><input id="relief" inputmode="numeric" value="" placeholder="e.g. 13,200"></div>
+        <p class="hint">E.g. earned income relief, CPF relief, child or parent relief. <button type="button" class="linkbtn" id="estRelief">Estimate for an employee</button></p>
+        <p class="hint" id="reliefNote" hidden></p>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <p class="step"><i>2</i> Your SRS top-up</p>
+        <label class="f" for="srs">Amount to contribute this year</label>
+        <div class="money"><span>S$</span><input id="srs" inputmode="numeric" value="" placeholder="e.g. 15,300"></div>
+        <input type="range" id="srsRange" min="0" max="15300" step="100" value="0" aria-label="SRS contribution">
+        <div class="rangeval"><span>S$0</span><b id="capLbl">Max S$15,300</b></div>
+        <p class="warn" id="srsWarn" hidden></p>
+        <p class="hint">Must reach your SRS account by 31 December to count for next year's tax bill.</p>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <p class="step"><i>3</i> Growth (optional)</p>
+        <label class="f" for="age">Your age now</label>
+        <div class="money"><input id="age" inputmode="numeric" value="" placeholder="e.g. 35"><span class="suf">years</span></div>
+        <label class="f" for="ret">Expected investment return per year</label>
+        <div class="money"><input id="ret" inputmode="decimal" value="" placeholder="e.g. 4"><span class="suf">%</span></div>
+        <p class="hint">Leave blank to skip. Uninvested SRS cash earns only about 0.05% a year. An illustration, not a forecast.</p>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn ghost" id="resetBtn">Reset</button>
+        <button type="button" class="btn" id="calcBtn">Calculate</button>
+      </div>
+      <p class="hint" id="staleHint" hidden>You've changed your details. Click Calculate to update the results.</p>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div>
+      <p class="step"><i>4</i> Your results</p>
+      <div class="placeholder" id="placeholder">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9aa7ba" stroke-width="1.6" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h8"/></svg>
+        <p><b>Fill in your details and click Calculate</b><br>We'll show your tax with and without SRS, side by side.</p>
+      </div>
+      <div id="results" hidden>
+      <div class="card compare">
+        <h3>With SRS vs without SRS</h3>
+        <table>
+          <thead><tr><th></th><th class="num">Without SRS</th><th class="num">With SRS</th></tr></thead>
+          <tbody>
+            <tr><td>Your annual income</td><td class="num" id="cInc1">–</td><td class="num" id="cInc2">–</td></tr>
+            <tr><td>Less: personal tax relief</td><td class="num" id="cRel1">–</td><td class="num" id="cRel2">–</td></tr>
+            <tr><td>Less: SRS contribution</td><td class="num">–</td><td class="num" id="cSrs">–</td></tr>
+            <tr class="sum"><td>Chargeable income</td><td class="num" id="cTi1">–</td><td class="num" id="cTi2">–</td></tr>
+            <tr class="sum"><td>Income tax payable</td><td class="num" id="cTax1">–</td><td class="num" id="cTax2">–</td></tr>
+            <tr class="save"><td>Your tax savings</td><td class="num"></td><td class="num" id="cSave">–</td></tr>
+          </tbody>
+        </table>
+        <p class="small" id="capLine" hidden></p>
+      </div>
+      <div class="res-top">
+        <div class="big" id="saving">S$0</div>
+        <p id="savingLine">estimated income tax saved this year</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><small>Taxable income</small><b id="tiAfter">–</b><em id="tiBefore">–</em></div>
+        <div class="stat"><small>Tax payable</small><b id="taxAfter">–</b><em id="taxBefore">–</em></div>
+        <div class="stat"><small>Your top tax rate</small><b id="marg">–</b><em>on your last dollar</em></div>
+        <div class="stat"><small>Return on top-up</small><b id="roi">–</b><em>tax saved ÷ amount put in</em></div>
+      </div>
+
+      <div class="card">
+        <h3>Tax this year</h3>
+        <div class="bars">
+          <div class="bar"><span>Without SRS</span><div class="track"><div class="fill" id="b1"></div></div><b id="b1v">–</b></div>
+          <div class="bar"><span>With SRS</span><div class="track"><div class="fill after" id="b2"></div></div><b id="b2v">–</b></div>
+        </div>
+        <p class="small" id="tipLine"></p>
+      </div>
+
+      <div class="card" style="margin-top:16px" id="growSkip" hidden>
+        <h3>See what your SRS could grow to</h3>
+        <p class="small" style="margin:4px 0 0">Add your age (and an expected return) in step 3, then click Calculate.</p>
+      </div>
+      <div class="card" style="margin-top:16px" id="growCard">
+        <h3>If you top up this amount every year</h3>
+        <p class="sub" id="growSub">Until your SRS retirement age of 64.</p>
+        <table>
+          <tbody>
+            <tr><td>Years of contributions</td><td class="num" id="gYears">–</td></tr>
+            <tr><td>Total put in</td><td class="num" id="gIn">–</td></tr>
+            <tr><td>Total tax saved along the way</td><td class="num" id="gTax">–</td></tr>
+            <tr><td>Estimated SRS balance at 64</td><td class="num"><b id="gBal">–</b></td></tr>
+            <tr><td>Spread over 10 years from 64, about</td><td class="num" id="gYearly">–</td></tr>
+            <tr><td>Tax on each year's withdrawal if it's your only income</td><td class="num" id="gWtax">–</td></tr>
+          </tbody>
+        </table>
+        <p class="small" style="margin-top:10px">Assumes today's tax rates and caps, and the same tax saving every year. Only 50% of what you withdraw from 64 onwards is taxed, so up to S$40,000 a year can come out tax-free if you have no other income.</p>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>Why people use SRS</h2>
+    <p class="sub">A voluntary retirement account that sits alongside CPF.</p>
+    <div class="cols3">
+      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><path d="M4 19h16M7 15l4-4 3 3 5-6"/></svg></div><h3>Lower tax now</h3><p>Each dollar you put in comes off your taxable income, up to the yearly cap.</p></div>
+      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg></div><h3>Tax-free growth</h3><p>Investment gains inside SRS aren't taxed while they stay in the account.</p></div>
+      <div class="feature"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></div><h3>Half-taxed in retirement</h3><p>From your SRS retirement age, only 50% of each withdrawal counts as income, over up to 10 years.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Key rules at a glance</h2>
+    <table>
+      <thead><tr><th>Rule</th><th>Citizens &amp; PRs</th><th>Foreigners</th></tr></thead>
+      <tbody>
+        <tr><td>Yearly contribution cap</td><td>S$15,300</td><td>S$35,700</td></tr>
+        <tr><td>Deadline for this year's relief</td><td colspan="2">31 December (bank cut-off times apply)</td></tr>
+        <tr><td>Overall personal relief cap</td><td colspan="2">S$80,000 a year, including SRS</td></tr>
+        <tr><td>SRS retirement age</td><td colspan="2">Fixed by your first contribution: 63 if made before 1 Jul 2026, 64 from 1 Jul 2026</td></tr>
+        <tr><td>Withdrawals at or after that age</td><td colspan="2">50% taxable, no penalty; spread over up to 10 years</td></tr>
+        <tr><td>Withdrawals before that age</td><td colspan="2">100% taxable plus a 5% penalty (some exceptions, e.g. medical grounds)</td></tr>
+        <tr><td>Number of accounts</td><td colspan="2">One, with DBS, OCBC or UOB</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>Common questions</h2>
+    <details><summary>Is SRS worth it for me?</summary><p>It's most useful when your top tax rate is 7% or higher (chargeable income above S$40,000). Below that, the yearly saving is small and the money is locked up until retirement unless you pay a penalty. The calculator shows your top rate.</p></details>
+    <details><summary>What happens if I just leave the money as cash?</summary><p>It earns very little interest. Most people invest SRS money in things like Singapore Savings Bonds, unit trusts, ETFs, shares or insurance plans to make it grow.</p></details>
+    <details><summary>Can SRS be used for insurance?</summary><p>Yes. Some single-premium endowment and annuity plans can be bought with SRS money. Ask us which plans fit your retirement timeline.</p></details>
+    <details><summary>Does SRS reduce my CPF contributions?</summary><p>No. SRS is separate from CPF and voluntary. It doesn't change what you or your employer put into CPF.</p></details>
+    <details><summary>Why is the S$80,000 relief cap important?</summary><p>All your personal reliefs combined, including SRS, can't exceed S$80,000 a year. If you already claim close to that, an SRS top-up may save little or nothing. The calculator applies this cap.</p></details>
+  </section>
+
+  <div class="cta">
+    <div><h2>Want to plan your SRS and retirement together?</h2><p>Chat with us about how much to put in, where to invest it and when to withdraw. Free, no obligation.</p></div>
+    <a class="btn" href="https://wa.me/6568072250" target="_blank" rel="noopener">WhatsApp us</a>
+  </div>
+
+  <section class="section" style="border:0">
+    <details><summary>Sources &amp; how we worked this out</summary>
+      <ul>
+        <li>Tax is worked out with IRAS resident progressive rates (0% on the first S$20,000 up to 24% above S$1 million), with no YA 2026 rebate.</li>
+        <li>Tax saved = tax on (income − reliefs) − tax on (income − reliefs − SRS), with total reliefs capped at S$80,000.</li>
+        <li>"Estimate for an employee" adds S$1,000 earned income relief plus 20% employee CPF on salary up to S$102,000 a year (the annual salary ceiling), for ages 55 and below. It ignores the monthly wage ceiling, so treat it as a rough guide.</li>
+        <li>Growth assumes the same contribution at the start of each year until age 64, compounding at the return you choose.</li>
+        <li>Rules: <a href="https://www.iras.gov.sg/schemes/individual-income-tax/srs-contributions-and-tax-relief" target="_blank" rel="noopener">IRAS – SRS contributions and tax relief</a>.</li>
+      </ul>
+      <p class="small">For planning discussion only. Not financial or tax advice. Rates and rules last checked October 2026.</p>
+    </details>
+  </section>
+</main>
+
+<footer><div class="wrap">© <span id="yr"></span> Provident Financial Planning Pte Ltd · +65 6807 2250 · hello@providentfpsg.com</div></footer>
+
+<script>
+(function(){
+  const BANDS=[[20000,0],[10000,.02],[10000,.035],[40000,.07],[40000,.115],[40000,.15],[40000,.18],[40000,.19],[40000,.195],[40000,.20],[180000,.22],[500000,.23],[Infinity,.24]];
+  function tax(ci){ci=Math.max(0,ci);let t=0,left=ci;for(const[w,r]of BANDS){const x=Math.min(left,w);t+=x*r;left-=x;if(left<=0)break}return t}
+  function topRate(ci){let acc=0;for(const[w,r]of BANDS){acc+=w;if(ci<=acc)return r}return .24}
+  const $=id=>document.getElementById(id);
+  const fmt=n=>'S$'+Math.round(n).toLocaleString('en-SG');
+  const num=el=>{const v=parseFloat(String(el.value).replace(/[^0-9.]/g,''));return isNaN(v)?0:v};
+  const RELIEF_CAP=80000, RET_AGE=64;
+  let resident='local';
+  const cap=()=>resident==='local'?15300:35700;
+
+  let shown=false;
+  function stale(){ if(shown) $('staleHint').hidden=false; }
+  const blank=el=>String(el.value).trim()==='';
+  function money(el,fmtIt=true){el.addEventListener('blur',()=>{if(fmtIt&&!blank(el))el.value=num(el).toLocaleString('en-SG')});el.addEventListener('input',()=>{stale();if(el.id==='income')$('incWarn').hidden=true});el.addEventListener('keydown',e=>{if(e.key==='Enter')run()})}
+  ['income','relief','srs'].forEach(id=>money($(id)));
+  ['age','ret'].forEach(id=>money($(id),false));
+  function setRes(v){resident=v;[...$('res').children].forEach(x=>x.classList.toggle('on',x.dataset.v===v));
+    $('srsRange').max=cap();$('capLbl').textContent='Max '+fmt(cap());$('capHint').textContent='You can contribute up to '+fmt(cap())+' a year.'}
+  $('res').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setRes(b.dataset.v);stale()});
+  $('srsRange').addEventListener('input',()=>{$('srs').value=num($('srsRange')).toLocaleString('en-SG');stale()});
+  $('srs').addEventListener('input',()=>{$('srsRange').value=Math.min(num($('srs')),cap())});
+  $('estRelief').addEventListener('click',()=>{const inc=num($('income'));const cpf=resident==='local'?0.2*Math.min(inc,102000):0;const r=1000+cpf;$('relief').value=Math.round(r).toLocaleString('en-SG');
+    const n=$('reliefNote');n.hidden=false;n.textContent=resident==='local'?'Estimated: S$1,000 earned income relief + '+fmt(cpf)+' CPF relief. Add any other reliefs you claim.':'Estimated: S$1,000 earned income relief (foreigners don’t make CPF contributions).';stale()});
+  function run(){
+    if(blank($('income'))||num($('income'))<=0){$('incWarn').hidden=false;$('income').focus();return}
+    $('placeholder').hidden=true; const r=$('results'); r.hidden=false; r.classList.remove('flash'); void r.offsetWidth; r.classList.add('flash');
+    shown=true; $('staleHint').hidden=true; calc();
+    if(window.innerWidth<860) r.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  $('calcBtn').addEventListener('click',run);
+  $('resetBtn').addEventListener('click',()=>{setRes('local');['income','relief','srs','age','ret'].forEach(id=>$(id).value='');$('srsRange').value=0;
+    ['reliefNote','srsWarn','staleHint','incWarn','results'].forEach(id=>$(id).hidden=true);
+    $('placeholder').hidden=false;shown=false;window.scrollTo({top:$('res').getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'})});
+
+  function calc(){
+    const inc=num($('income')), rel=num($('relief'));
+    let s=num($('srs')); const w=$('srsWarn');
+    if(s>cap()){w.hidden=false;w.textContent='Capped at '+fmt(cap())+' for '+(resident==='local'?'Citizens and PRs.':'foreigners.');s=cap()}else w.hidden=true;
+    const relBefore=Math.min(rel,RELIEF_CAP), relAfter=Math.min(rel+s,RELIEF_CAP);
+    const tiB=Math.max(0,inc-relBefore), tiA=Math.max(0,inc-relAfter);
+    const tB=tax(tiB), tA=tax(tiA), saved=tB-tA;
+    $('cInc1').textContent=$('cInc2').textContent=fmt(inc);
+    $('cRel1').textContent=$('cRel2').textContent=rel?'('+fmt(relBefore)+')':'–';
+    $('cSrs').textContent=s?'('+fmt(relAfter-relBefore)+')':'–';
+    $('cTi1').textContent=fmt(tiB);$('cTi2').textContent=fmt(tiA);$('cTax1').textContent=fmt(tB);$('cTax2').textContent=fmt(tA);$('cSave').textContent=fmt(saved);
+    const cl=$('capLine'); if(rel+s>RELIEF_CAP){cl.hidden=false;cl.textContent='Total reliefs are capped at S$80,000 a year, so only '+fmt(relAfter-relBefore)+' of your SRS top-up counts.'}else cl.hidden=true;
+    $('saving').textContent=fmt(saved);
+    $('savingLine').textContent=s>0?'estimated income tax saved this year by putting '+fmt(s)+' into SRS':'enter an SRS amount to see your saving';
+    $('tiAfter').textContent=fmt(tiA);$('tiBefore').textContent='was '+fmt(tiB);
+    $('taxAfter').textContent=fmt(tA);$('taxBefore').textContent='was '+fmt(tB);
+    $('marg').textContent=(topRate(tiB)*100).toFixed(1).replace('.0','')+'%';
+    $('roi').textContent=s>0?(saved/s*100).toFixed(1)+'%':'–';
+    const mx=Math.max(tB,1);$('b1').style.width=(tB/mx*100)+'%';$('b2').style.width=(tA/mx*100)+'%';$('b1v').textContent=fmt(tB);$('b2v').textContent=fmt(tA);
+    let tip='';
+    if(rel+s>RELIEF_CAP&&s>0) tip='Your reliefs hit the S$80,000 cap, so only '+fmt(Math.max(0,RELIEF_CAP-rel))+' of this top-up reduces your tax.';
+    else if(tiB<=20000) tip='Your income is already in the 0% band, so SRS won’t save tax this year.';
+    else if(topRate(tiB)<.07) tip='Your top rate is under 7%. The saving is small compared with locking the money up until retirement.';
+    else if(topRate(tiA)<topRate(tiB)) tip='Part of your top-up drops you into a lower tax band, so the last dollars save less.';
+    $('tipLine').textContent=tip;
+    // growth
+    const noGrow=blank($('age'))||s<=0; $('growCard').hidden=noGrow; $('growSkip').hidden=!noGrow; if(noGrow) return;
+    const age=Math.min(63,Math.max(18,Math.round(num($('age'))))), r=(blank($('ret'))?0:Math.min(15,num($('ret'))))/100;
+    const yrs=Math.max(0,RET_AGE-age); let bal=0; for(let i=0;i<yrs;i++) bal=(bal+s)*(1+r);
+    $('gYears').textContent=yrs+' year'+(yrs===1?'':'s');$('gIn').textContent=fmt(s*yrs);$('gTax').textContent=fmt(saved*yrs);$('gBal').textContent=fmt(bal);
+    const yearly=bal/10; $('gYearly').textContent=fmt(yearly)+' a year';$('gWtax').textContent=fmt(tax(yearly*0.5));
+    $('growSub').textContent='Contributing '+fmt(s)+' a year from age '+age+', growing at '+(r*100).toFixed(1).replace('.0','')+'% a year, until your SRS retirement age of 64 (if your first contribution is from 1 July 2026).';
+  }
+  $('yr').textContent=new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
