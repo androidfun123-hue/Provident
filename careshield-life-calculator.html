@@ -84,6 +84,14 @@
   .pillgroup { display: flex; gap: 6px; background: var(--bg-alt); padding: 4px; border-radius: 10px; }
   .pillgroup button { flex: 1; border: none; background: transparent; padding: 9px 8px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit; }
   .pillgroup button.active { background: var(--navy); color: #fff; }
+  .pillgroup.pillgroup-2col { display: grid; grid-template-columns: 1fr 1fr; }
+  .pillgroup.pillgroup-2col button { font-size: 12.5px; padding: 9px 6px; }
+  .sg-result-box { margin-top: 14px; background: var(--bg-alt); border-radius: 12px; padding: 4px 16px; }
+  .sg-result-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 9px 0; font-size: 13.5px; border-bottom: 1px solid var(--line); }
+  .sg-result-row:last-child { border-bottom: none; }
+  .sg-result-row .sg-label { color: var(--muted); }
+  .sg-result-row .sg-val { color: var(--navy); font-weight: 700; white-space: nowrap; }
+  .sg-cash-row .sg-val { color: var(--green); font-size: 15.5px; }
   .step-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .step-heading h3 { margin-bottom: 0; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); }
   .step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
@@ -252,10 +260,46 @@
               <div class="field-note">Total monthly household income &divide; number of people living there. Leave blank to skip &mdash; subsidies are also affected by your home's annual value, which this tool doesn't check.</div>
             </div>
           </div>
+          <div>
+            <div class="step-heading"><span class="step-num">3</span><h3>Singlife CareShield Supplement <span class="opt" style="font-weight:500;text-transform:none;letter-spacing:0">indicative premium</span></h3></div>
+            <div class="field">
+              <div class="field-label">Plan</div>
+              <div class="pillgroup" id="sg-plan-group">
+                <button data-sgplan="standard" class="active" type="button">Standard</button>
+                <button data-sgplan="plus" type="button">Plus</button>
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-label">Pay premiums until</div>
+              <div class="pillgroup" id="sg-payto-group">
+                <button data-sgpayto="69" class="active" type="button">Age 69</button>
+                <button data-sgpayto="99" type="button">Age 99</button>
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-label">Monthly benefit</div>
+              <div class="pillgroup pillgroup-2col" id="sg-benefit-group">
+                <button data-sgbenefit="b1000" class="active" type="button">S$1,000</button>
+                <button data-sgbenefit="b1500" type="button">S$1,500</button>
+                <button data-sgbenefit="b2000" type="button">S$2,000</button>
+                <button data-sgbenefit="max" type="button">Max on MediSave</button>
+              </div>
+            </div>
+            <div class="sg-result-box" id="sg-result-box">
+              <div class="sg-result-row"><span class="sg-label">Benefit</span><span class="sg-val" id="sg-benefit-val">&mdash;</span></div>
+              <div class="sg-result-row"><span class="sg-label">Annual premium, before discount</span><span class="sg-val" id="sg-gross">&mdash;</span></div>
+              <div class="sg-result-row"><span class="sg-label">Annual premium, after online discount</span><span class="sg-val" id="sg-net">&mdash;</span></div>
+              <div class="sg-result-row sg-cash-row"><span class="sg-label">Cash payable after MediSave</span><span class="sg-val" id="sg-cash">&mdash;</span></div>
+            </div>
+            <div class="field-note" id="sg-anb-note" style="margin-top:8px"></div>
+            <div class="amber-note" id="sg-unavailable-note" style="display:none;margin-top:10px"></div>
+            <div class="terms-note" style="margin-top:12px">Indicative Singlife online direct-channel rates collected 17 Oct 2026 (non-smoker not asked; no existing-policyholder offer). The online discount is a Singlife promotion and may change. Not a quote &mdash; contact us for your exact premium.</div>
+            <a href="index.html#contact" class="btn btn-primary" style="margin-top:12px;width:100%" onclick="if(window.PFPWidget){window.PFPWidget.open(window.__csChatContext);return false;}">Get my exact premium</a>
+          </div>
         </div>
 
         <div class="results">
-          <div class="step-heading"><span class="step-num">3</span><h3>Your results</h3></div>
+          <div class="step-heading"><span class="step-num">4</span><h3>Your results</h3></div>
 
           <div class="status-card" id="status-card"></div>
 
@@ -313,7 +357,7 @@
                 </tbody>
               </table>
             </div>
-            <div class="terms-note" style="margin-top:12px">Source: government-published CareShield Life Supplement comparison, Sep 2025, entry age 30, $600/month benefit tier. Rates are reviewed periodically and will differ at other ages or benefit levels &mdash; we'll get you the current rate for your exact age.</div>
+            <div class="terms-note" style="margin-top:12px">Source: government-published CareShield Life Supplement comparison, Sep 2025, entry age 30, $600/month benefit tier. Rates are reviewed periodically and will differ at other ages or benefit levels &mdash; we'll get you the current rate for your exact age. The Singlife figures in the calculator above are Singlife's own October 2026 online direct-channel rates, by your exact age and benefit amount &mdash; they won't exactly match this Sep 2025 table, which is fixed at the $600/month tier.</div>
           </div>
         </div>
       </div>
@@ -329,7 +373,7 @@
       <p class="footnote">For planning discussion only &mdash; not financial advice, and not a MOH or CPF Board product.</p>
       <details class="footnote">
         <summary>Sources &amp; how we worked this out</summary>
-        <p>Enrolment rules, premium payment period, and payout mechanics: CPF Board's <a href="https://www.cpf.gov.sg/member/healthcare-financing/careshield-life" target="_blank" rel="noopener">CareShield Life</a> pages and <a href="https://www.cpf.gov.sg/member/healthcare-financing/careshield-life/careshield-premiums-and-subsidies" target="_blank" rel="noopener">premiums and subsidies</a> page. Income-based subsidy tiers (30%/25%/20% of premium for Singapore Citizens with monthly household income per person of $1,500, $1,501&ndash;2,600 and $2,601&ndash;3,600 respectively; half those rates for Permanent Residents) are also from that CPF Board page; subsidies are further affected by your home's annual value, which isn't captured here. The $206 (male) / $254 (female) reference premium for joining at age 30 comes from MOH's 2026 CareShield Life premium figures, consistent with MOH's original 2020 launch figures ($206 / $253) for the same entry age &mdash; the one point in the age range with a clearly published, consistent source. We deliberately do not show a projected premium for other entry ages: MOH does not publish a full rate table, and an earlier attempt by a third-party site to fill those gaps with an extrapolated table was pulled down after being flagged as misleading. The 2026&ndash;2030 payout schedule and the ~4%/year growth rate are from the CareShield Life Council's 2025 review, accepted by the Government. CareShield Life Supplement premiums are from the government's official comparison of supplement plans (Sep 2025 edition), for entry age 30 and a $600/month benefit tier only.</p>
+        <p>Enrolment rules, premium payment period, and payout mechanics: CPF Board's <a href="https://www.cpf.gov.sg/member/healthcare-financing/careshield-life" target="_blank" rel="noopener">CareShield Life</a> pages and <a href="https://www.cpf.gov.sg/member/healthcare-financing/careshield-life/careshield-premiums-and-subsidies" target="_blank" rel="noopener">premiums and subsidies</a> page. Income-based subsidy tiers (30%/25%/20% of premium for Singapore Citizens with monthly household income per person of $1,500, $1,501&ndash;2,600 and $2,601&ndash;3,600 respectively; half those rates for Permanent Residents) are also from that CPF Board page; subsidies are further affected by your home's annual value, which isn't captured here. The $206 (male) / $254 (female) reference premium for joining at age 30 comes from MOH's 2026 CareShield Life premium figures, consistent with MOH's original 2020 launch figures ($206 / $253) for the same entry age &mdash; the one point in the age range with a clearly published, consistent source. We deliberately do not show a projected premium for other entry ages: MOH does not publish a full rate table, and an earlier attempt by a third-party site to fill those gaps with an extrapolated table was pulled down after being flagged as misleading. The 2026&ndash;2030 payout schedule and the ~4%/year growth rate are from the CareShield Life Council's 2025 review, accepted by the Government. CareShield Life Supplement premiums are from the government's official comparison of supplement plans (Sep 2025 edition), for entry age 30 and a $600/month benefit tier only. The Singlife CareShield Supplement premium lookup (Standard and Plus plans, paying to age 69 or 99, at $1,000/$1,500/$2,000 monthly benefit or the maximum benefit payable within $600/year) uses Singlife's own online direct-channel indicative rates, collected 17 Oct 2026, by age next birthday (31&ndash;65, gender-differentiated); the $600/year MediSave offset reflects MediSave's current annual CareShield Life Supplement withdrawal limit.</p>
       </details>
     </div>
   </section>
