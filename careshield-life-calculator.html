@@ -101,6 +101,19 @@
   .step-gap strong { color: var(--navy); }
   .step-back { display: block; margin: 12px auto 0; background: none; border: none; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; text-decoration: underline; }
   @media (max-width: 560px) { .step-next { width: 100%; } }
+  .pitch { margin-top: 10px; }
+  .pitch-title { font-size: 26px; line-height: 1.25; color: var(--navy); margin-bottom: 10px; }
+  .pitch-lead { font-size: 16px; color: var(--ink); line-height: 1.6; max-width: 760px; margin-bottom: 24px; }
+  .pitch-lead strong { color: var(--green); }
+  .adl-head { font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--navy); margin-bottom: 12px; }
+  .adl-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 26px; }
+  .adl { background: var(--bg-alt); border-radius: 12px; padding: 16px 8px 12px; text-align: center; font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.3; }
+  .adl svg { width: 44px; height: 44px; display: block; margin: 0 auto 8px; fill: none; stroke: var(--green); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .pitch-points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .pp { border-left: 3px solid var(--green); padding: 2px 0 2px 14px; }
+  .pp strong { display: block; color: var(--navy); font-size: 15.5px; margin-bottom: 4px; }
+  .pp span { color: var(--muted); font-size: 14px; line-height: 1.55; }
+  @media (max-width: 760px) { .adl-grid { grid-template-columns: repeat(3, 1fr); } .pitch-points { grid-template-columns: 1fr; } .pitch-title { font-size: 22px; } }
   .step-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .step-heading h3 { margin-bottom: 0; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); }
   .step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
@@ -232,11 +245,33 @@
           </div>
         </div>
         <div class="step-gap"><strong>Want more than the base payout?</strong> CareShield Life covers part of long-term care costs. A private supplement adds a higher monthly payout on top.</div>
-        <button type="button" class="btn btn-primary step-next" id="btn-next">Next: see Singlife supplement rates &rarr;</button>
+        <button type="button" class="btn btn-primary step-next" id="btn-next">Next: why add a supplement &rarr;</button>
       </div>
 
       <div class="flow-step" id="step-2" hidden>
-        <div class="step-heading"><span class="step-num">2</span><h3>Singlife CareShield supplement rates</h3></div>
+        <div class="step-heading"><span class="step-num">2</span><h3>Why add a supplement</h3></div>
+        <div class="pitch card">
+          <h2 class="pitch-title">CareShield Life is a base. A supplement tops it up.</h2>
+          <p class="pitch-lead">CareShield Life pays <strong>$689 a month</strong> in 2026 if you become severely disabled. A Singlife CareShield supplement adds a further monthly cash payout on top, so you and your family have more to work with for care.</p>
+
+          <div class="adl-head">Severe disability means you can't do 3 of these 6 daily tasks on your own</div>
+          <div class="adl-grid">
+            <div class="adl"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 8h14a6 6 0 0 1 6 6v2"/><path d="M22 16h16"/><path d="M26 22v4M30 24v4M34 22v4M38 24v4M26 32v4M34 32v4M30 34v4"/></svg><span>Washing</span></div>
+            <div class="adl"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8l-10 6 4 8 4-2v20h16V20l4 2 4-8-10-6"/><path d="M18 8a6 6 0 0 0 12 0"/></svg><span>Dressing</span></div>
+            <div class="adl"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 24h30a15 15 0 0 1-30 0z"/><path d="M14 38h14"/><path d="M38 6v14M42 6v6a4 4 0 0 1-8 0V6"/></svg><span>Eating</span></div>
+            <div class="adl"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6h12v14H12z"/><path d="M8 20h28a10 10 0 0 1-10 10H18A10 10 0 0 1 8 20z"/><path d="M16 30l-2 12h16l-2-12"/></svg><span>Toileting</span></div>
+            <div class="adl"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="8" r="4"/><path d="M24 14l-4 12 6 6 2 12"/><path d="M20 26l-4 18"/><path d="M23 17l-7 6M25 17l6 5"/><path d="M34 24v20"/></svg><span>Walking</span></div>
+            <div class="adl"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 34V16M4 26h22v8"/><path d="M8 22h8"/><path d="M30 38V26h12v12M30 32h12M42 18v8"/><path d="M18 12h12l-3-3M30 12l-3 3"/></svg><span>Moving from bed to chair</span></div>
+          </div>
+
+          <div class="pitch-points">
+            <div class="pp"><strong>More monthly cash</strong><span>Choose an extra S$1,000 to S$2,000 a month on top of CareShield Life.</span></div>
+            <div class="pp"><strong>Up to $600 a year from MediSave</strong><span>Part of the premium can be paid from MediSave, so less comes out of your pocket.</span></div>
+            <div class="pp"><strong>Lower premiums when you start younger</strong><span>Rates are set by your age when you sign up, and rise with every few years you wait.</span></div>
+          </div>
+        </div>
+
+        <div class="step-heading" style="margin-top:28px"><span class="step-num">3</span><h3>See your Singlife rate</h3></div>
         <div class="amber-note" style="margin:6px 0 20px"><strong>Reference only.</strong> Singlife rates are shown for a few ages only (age next birthday 35, 40, 45, 50, 55, 60 and 65). Other ages use the next published age up, so your actual premium will differ. Contact us for your exact premium.</div>
         <div class="calc-grid">
           <div class="input-card card">
