@@ -80,9 +80,6 @@
   .hv-art { position: absolute; left: -10px; bottom: -20px; width: 170px; height: 170px; z-index: 0; }
   .hv-badge { position: absolute; right: 10px; top: 0; background: #fff; border-radius: 999px; box-shadow: 0 12px 30px rgba(15,42,74,.12); padding: 10px 16px 10px 10px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--navy); z-index: 2; }
   .hv-badge i { width: 30px; height: 30px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-style: normal; }
-  .tile { position: relative; overflow: hidden; }
-  .tile > * { position: relative; z-index: 1; }
-  .tile .art { position: absolute; right: 8px; top: 18px; width: 150px; height: 120px; z-index: 0; opacity: .9; }
   .panel .art { width: 100%; max-width: 280px; height: auto; margin-bottom: 24px; display: block; }
   .why .w .ic { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; margin-bottom: 18px; }
   .why .w .ic svg { width: 26px; height: 26px; }
@@ -106,18 +103,23 @@
   .head h2 { font-size: clamp(30px, 4vw, 46px); line-height: 1.1; letter-spacing: -.03em; color: var(--navy); font-weight: 800; margin-bottom: 16px; }
   .head p { color: var(--muted); font-size: 18px; }
 
-  /* Tool tiles */
-  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .tile { border-radius: var(--radius); padding: 32px; display: flex; flex-direction: column; min-height: 300px; transition: transform .2s, box-shadow .2s; }
-  .tile:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,42,74,.10); }
-  .tile.t1 { background: var(--mint); } .tile.t2 { background: var(--sky); } .tile.t3 { background: var(--sand); }
-  .tile .ti { width: 52px; height: 52px; border-radius: 16px; background: #fff; display: grid; place-items: center; color: var(--navy); margin-bottom: 28px; }
-  .tile .ti svg { width: 26px; height: 26px; }
-  .tile h3 { font-size: 24px; letter-spacing: -.02em; color: var(--navy); margin-bottom: 10px; }
-  .tile p { color: #46546a; font-size: 15px; flex: 1; }
-  .tile .go { margin-top: 24px; font-weight: 600; color: var(--navy); display: inline-flex; align-items: center; gap: 8px; }
-  .tile:hover .go span { transform: translateX(4px); }
-  .tile .go span { transition: transform .2s; }
+  /* Photo cards */
+  .pcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .pcards.two { grid-template-columns: 1fr 1fr; margin-bottom: 48px; }
+  .pcard { position: relative; display: flex; flex-direction: column; justify-content: space-between; min-height: 460px; border-radius: 24px; overflow: hidden; background: var(--navy); color: #fff; isolation: isolate; transition: transform .25s, box-shadow .25s; }
+  .pcard.wide { min-height: 340px; }
+  .pcard img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform .6s; color: transparent; font-size: 0; }
+  .pcard::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(8,22,40,.72) 0%, rgba(8,22,40,.15) 38%, rgba(8,22,40,.15) 55%, rgba(8,22,40,.85) 100%); }
+  .pcard:hover { transform: translateY(-4px); box-shadow: 0 22px 48px rgba(15,42,74,.18); }
+  .pcard:hover img { transform: scale(1.04); }
+  .pc-top, .pc-bottom { padding: 26px 28px; }
+  .pc-kicker { display: block; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.8); margin-bottom: 10px; }
+  .pcard h3 { font-size: clamp(26px, 2.6vw, 32px); line-height: 1.12; letter-spacing: -.02em; font-weight: 700; max-width: 300px; }
+  .pcard.wide h3 { max-width: 380px; }
+  .pc-bottom p { font-size: 14px; color: rgba(255,255,255,.88); margin-bottom: 14px; max-width: 360px; }
+  .pcard .go { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 600; font-size: 14px; }
+  .pcard .go i { font-style: normal; width: 34px; height: 34px; border-radius: 50%; background: var(--green); display: grid; place-items: center; flex: none; transition: transform .2s; }
+  .pcard:hover .go i { transform: translateX(3px); }
 
   /* Adviser split */
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
@@ -193,8 +195,9 @@
   @media (max-width: 900px) {
     .hero .wrap, .split, .band .inner { grid-template-columns: 1fr; }
     .hero-visual { min-height: 380px; max-width: 460px; }
-    .tiles { grid-template-columns: 1fr; }
-    .tile { min-height: 0; }
+    .pcards, .pcards.two { grid-template-columns: 1fr; }
+    .pcard { min-height: 400px; }
+    .pcard.wide { min-height: 320px; }
     .strip .wrap { grid-template-columns: 1fr; }
     .strip div.item + div.item { border-left: 0; border-top: 1px solid var(--line); }
     .steps { grid-template-columns: 1fr; gap: 28px; }
@@ -296,27 +299,21 @@
         <h2>Plan Your Retirement and Care with Clear Numbers</h2>
         <p>Three free calculators built on current Singapore rules. No sign-up needed.</p>
       </div>
-      <div class="tiles">
-        <a class="tile t1" href="cpf-life-calculator.html">
-          <svg class="art" viewBox="0 0 150 120" aria-hidden="true"><rect x="20" y="70" width="18" height="40" rx="4" fill="#bfe6cf"/><rect x="48" y="55" width="18" height="55" rx="4" fill="#9fdab9"/><rect x="76" y="38" width="18" height="72" rx="4" fill="#6fc79a"/><rect x="104" y="18" width="18" height="92" rx="4" fill="#1f9d6b"/><path d="M18 60 52 42 80 30 128 8" stroke="#0f2a4a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="128" cy="8" r="5" fill="#0f2a4a"/></svg>
-          <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/></svg></div>
-          <h3>CPF LIFE</h3>
-          <p>See how your CPF savings could grow, how close you are to the Basic, Full and Enhanced Retirement Sum, and your estimated monthly payout.</p>
-          <span class="go">Try the CPF LIFE Calculator <span>&rarr;</span></span>
+      <div class="pcards">
+        <a class="pcard" href="cpf-life-calculator.html">
+          <img src="https://images.unsplash.com/photo-1777904257177-f520bc1b10c3?auto=format&fit=crop&q=70&w=800&h=1000" srcset="https://images.unsplash.com/photo-1777904257177-f520bc1b10c3?auto=format&fit=crop&q=70&w=480&h=600 480w, https://images.unsplash.com/photo-1777904257177-f520bc1b10c3?auto=format&fit=crop&q=70&w=800&h=1000 800w, https://images.unsplash.com/photo-1777904257177-f520bc1b10c3?auto=format&fit=crop&q=70&w=1200&h=1500 1200w" sizes="(max-width: 900px) 100vw, 380px" alt="An older couple walking hand in hand outdoors" width="800" height="1000" loading="lazy" decoding="async">
+          <div class="pc-top"><span class="pc-kicker">CPF LIFE calculator</span><h3>Know Your Retirement Payout</h3></div>
+          <div class="pc-bottom"><p>See how your CPF savings could grow and what you might receive each month from CPF LIFE.</p><span class="go">Try the CPF LIFE Calculator <i>&rarr;</i></span></div>
         </a>
-        <a class="tile t2" href="careshield-life-calculator.html">
-          <svg class="art" viewBox="0 0 150 120" aria-hidden="true"><circle cx="100" cy="58" r="46" fill="#d6e4f5"/><path d="M100 30l28 10v22c0 20-13 32-28 38-15-6-28-18-28-38V40z" fill="#173a63"/><path d="M100 54c3-5 13-5 13 4 0 7-13 15-13 15s-13-8-13-15c0-9 10-9 13-4z" fill="#fff"/></svg>
-          <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg></div>
-          <h3>CareShield Life</h3>
-          <p>Understand what CareShield Life pays if you become severely disabled, and see indicative Singlife supplement rates for extra cover.</p>
-          <span class="go">Try the CareShield Life Calculator <span>&rarr;</span></span>
+        <a class="pcard" href="careshield-life-calculator.html">
+          <img src="https://images.unsplash.com/photo-1704475686860-ab71b444df6b?auto=format&fit=crop&q=70&w=800&h=1000" srcset="https://images.unsplash.com/photo-1704475686860-ab71b444df6b?auto=format&fit=crop&q=70&w=480&h=600 480w, https://images.unsplash.com/photo-1704475686860-ab71b444df6b?auto=format&fit=crop&q=70&w=800&h=1000 800w, https://images.unsplash.com/photo-1704475686860-ab71b444df6b?auto=format&fit=crop&q=70&w=1200&h=1500 1200w" sizes="(max-width: 900px) 100vw, 380px" alt="An older man and a younger woman smiling together" width="800" height="1000" loading="lazy" decoding="async">
+          <div class="pc-top"><span class="pc-kicker">CareShield Life calculator</span><h3>Prepare for Long-Term Care</h3></div>
+          <div class="pc-bottom"><p>See what CareShield Life pays if you become severely disabled, and how a supplement adds more.</p><span class="go">Try the CareShield Life Calculator <i>&rarr;</i></span></div>
         </a>
-        <a class="tile t3" href="srs-calculator.html">
-          <svg class="art" viewBox="0 0 150 120" aria-hidden="true"><ellipse cx="100" cy="100" rx="40" ry="10" fill="#f3dfbf"/><ellipse cx="100" cy="92" rx="34" ry="9" fill="#e9b85f"/><rect x="66" y="74" width="68" height="18" fill="#e9b85f"/><ellipse cx="100" cy="74" rx="34" ry="9" fill="#f4cf86"/><ellipse cx="100" cy="62" rx="28" ry="8" fill="#e9b85f"/><rect x="72" y="46" width="56" height="16" fill="#e9b85f"/><ellipse cx="100" cy="46" rx="28" ry="8" fill="#f4cf86"/><text x="100" y="51" text-anchor="middle" font-size="13" font-weight="700" fill="#a4670c" font-family="Inter,sans-serif">S$</text></svg>
-          <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h8"/></svg></div>
-          <h3>SRS</h3>
-          <p>See how much income tax an SRS top-up could save you this year, and what yearly top-ups might grow to by retirement.</p>
-          <span class="go">Try the SRS Calculator <span>&rarr;</span></span>
+        <a class="pcard" href="srs-calculator.html">
+          <img src="https://images.unsplash.com/photo-1543269664-7eef42226a21?auto=format&fit=crop&q=70&w=800&h=1000" srcset="https://images.unsplash.com/photo-1543269664-7eef42226a21?auto=format&fit=crop&q=70&w=480&h=600 480w, https://images.unsplash.com/photo-1543269664-7eef42226a21?auto=format&fit=crop&q=70&w=800&h=1000 800w, https://images.unsplash.com/photo-1543269664-7eef42226a21?auto=format&fit=crop&q=70&w=1200&h=1500 1200w" sizes="(max-width: 900px) 100vw, 380px" alt="A smiling man using a laptop on a sofa" width="800" height="1000" loading="lazy" decoding="async">
+          <div class="pc-top"><span class="pc-kicker">SRS calculator</span><h3>Save Tax While You Save</h3></div>
+          <div class="pc-bottom"><p>See how much income tax an SRS top-up could save you this year, and what it might grow to.</p><span class="go">Try the SRS Calculator <i>&rarr;</i></span></div>
         </a>
       </div>
     </div>
@@ -351,6 +348,18 @@
         <span class="kicker">What we cover</span>
         <h2>Cover for Your Business, Your Home and Your Family</h2>
         <p>Tell us what you need to protect. We'll compare options and walk you through the fine print.</p>
+      </div>
+      <div class="pcards two">
+        <a class="pcard wide" href="#services" data-open-tab="biz">
+          <img src="https://images.unsplash.com/photo-1753351052363-53ce102830eb?auto=format&fit=crop&q=70&w=800&h=467" srcset="https://images.unsplash.com/photo-1753351052363-53ce102830eb?auto=format&fit=crop&q=70&w=480&h=280 480w, https://images.unsplash.com/photo-1753351052363-53ce102830eb?auto=format&fit=crop&q=70&w=800&h=467 800w, https://images.unsplash.com/photo-1753351052363-53ce102830eb?auto=format&fit=crop&q=70&w=1200&h=700 1200w" sizes="(max-width: 900px) 100vw, 580px" alt="A smiling woman standing in her coffee shop" width="1200" height="700" loading="lazy" decoding="async">
+          <div class="pc-top"><span class="pc-kicker">Business &amp; Home</span><h3>Protect the Business You Built</h3></div>
+          <div class="pc-bottom"><p>Property, liability, work injury, group medical and more for Singapore businesses.</p><span class="go">See business cover <i>&rarr;</i></span></div>
+        </a>
+        <a class="pcard wide" href="#personal" data-open-tab="personal">
+          <img src="https://images.unsplash.com/photo-1576089073624-b5751a8f4de9?auto=format&fit=crop&q=70&w=800&h=467" srcset="https://images.unsplash.com/photo-1576089073624-b5751a8f4de9?auto=format&fit=crop&q=70&w=480&h=280 480w, https://images.unsplash.com/photo-1576089073624-b5751a8f4de9?auto=format&fit=crop&q=70&w=800&h=467 800w, https://images.unsplash.com/photo-1576089073624-b5751a8f4de9?auto=format&fit=crop&q=70&w=1200&h=700 1200w" sizes="(max-width: 900px) 100vw, 580px" alt="A family eating together at the dinner table" width="1200" height="700" loading="lazy" decoding="async">
+          <div class="pc-top"><span class="pc-kicker">Personal &amp; Life</span><h3>Look After the People Who Matter</h3></div>
+          <div class="pc-bottom"><p>Life, health, critical illness and retirement plans for you and your family.</p><span class="go">See personal cover <i>&rarr;</i></span></div>
+        </a>
       </div>
       <div class="tabs" role="tablist">
         <button type="button" class="on" role="tab" aria-selected="true" data-tab="biz">Business &amp; Home</button>
@@ -490,7 +499,7 @@
   }
   tabs.forEach(function (t) { t.addEventListener('click', function () { showTab(t.dataset.tab); }); });
   document.querySelectorAll('[data-open-tab]').forEach(function (a) {
-    a.addEventListener('click', function (e) { e.preventDefault(); showTab(a.dataset.openTab); document.getElementById('services').scrollIntoView({ behavior: 'smooth' }); });
+    a.addEventListener('click', function (e) { e.preventDefault(); showTab(a.dataset.openTab); document.querySelector('.tabs').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
   });
   if (location.hash === '#personal') { showTab('personal'); document.getElementById('services').scrollIntoView(); }
 })();
