@@ -594,7 +594,10 @@
    function buildDOM() {
              const bubble = document.createElement("div");
              bubble.id = "pfp-widget-bubble";
-             bubble.innerHTML = "💬";
+             // Speech bubble with an AI sparkle (inline SVG so it stays crisp).
+             bubble.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11.2l-4.5 3.6a.6.6 0 0 1-1-.47V16A2.2 2.2 0 0 1 4 13.8V5.5A2.5 2.5 0 0 1 6.5 3z" fill="#fff"/><path d="M11 5.6c.4 2.1 1.3 3 3.4 3.4-2.1.4-3 1.3-3.4 3.4-.4-2.1-1.3-3-3.4-3.4 2.1-.4 3-1.3 3.4-3.4z" fill="#1a3a5c"/><path d="M15.6 10.2c.2 1 .6 1.4 1.6 1.6-1 .2-1.4.6-1.6 1.6-.2-1-.6-1.4-1.6-1.6 1-.2 1.4-.6 1.6-1.6z" fill="#1f9d6b"/></svg>';
+             bubble.setAttribute("role", "button");
+             bubble.setAttribute("aria-label", "Chat with our AI adviser");
              bubble.onclick = () => {
                        dismissTeaser();
                        openWidget();
