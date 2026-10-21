@@ -26,9 +26,40 @@
    // ---- CONFIG: change this to your deployed API URL ----
    const API_ENDPOINT = "https://ai.providentfpsg.com/api/chat";
 
-   	const GREETING =
-                		"Hey there! 👋 I'm Provident's Smart Insurance Adviser — are you looking into insurance for your business or property (general insurance), or for yourself and your family (life & personal insurance)?";
-   const GREETING_QUICK_REPLIES = ["General / business insurance", "Personal & life insurance", "Not sure yet"];
+   const GREETING =
+             "Hey there! 👋 I'm Provident's Smart Insurance Adviser. What would you like to get covered? Tap an option below, or type your question.";
+
+   // Tappable menu shown under the generic greeting, matching the products
+   // on the home page's Corporate / Personal Insurance tabs. Each tap is
+   // sent as the visitor's first reply, tagged with its track so the AI
+   // knows which line of business to follow.
+   const INSURANCE_MENU = [
+             {
+                       heading: "Corporate Insurance",
+                       track: "corporate insurance",
+                       items: [
+                                 { label: "Property & Fire", sub: "Offices, warehouses, stock and equipment" },
+                                 { label: "Marine", sub: "Cargo and hull cover" },
+                                 { label: "Liability", sub: "Public, product and professional" },
+                                 { label: "Work Injury (WICA)", sub: "Compensation for your employees" },
+                                 { label: "Commercial Motor", sub: "Company cars, vans, lorries and fleets" },
+                                 { label: "Group Medical", sub: "Hospital and outpatient plans for your team" },
+                       ],
+             },
+             {
+                       heading: "Personal Insurance",
+                       track: "personal insurance",
+                       items: [
+                                 { label: "Life Insurance", sub: "Term and whole life" },
+                                 { label: "Health & Medical", sub: "Hospitalisation and outpatient" },
+                                 { label: "Critical Illness", sub: "Lump sum on diagnosis" },
+                                 { label: "Personal Accident" },
+                                 { label: "Retirement & Savings" },
+                                 { label: "Home", sub: "Contents and building" },
+                                 { label: "Travel", sub: "Single trip and annual plans" },
+                       ],
+             },
+   ];
 
    const TEASER_TEXT = "Ask our Smart Insurance Adviser — free, instant, no obligation.";
    const TEASER_DELAY_MS = 4000;
@@ -62,7 +93,7 @@
                                  quickReplies: ["Help me plan around this", "Just exploring for now", "I have a different question"],
                        };
              }
-             return { text: GREETING, quickReplies: GREETING_QUICK_REPLIES };
+             return { text: GREETING, menu: INSURANCE_MENU };
    }
 
    // ---- Styles (scoped, injected once) ----
@@ -142,7 +173,7 @@
                                                                                                                                                                                    .pfp-msg-user {
                                                                                                                                                                                          background: #1a3a5c; color: white; padding: 11px 14px;
                                                                                                                                                                                                border-radius: 10px; margin-bottom: 14px; margin-left: auto;
-                                                                                                                                                                                                     max-width: 80%; text-align: right; line-height: 1.45;
+                                                                                                                                                                                                     max-width: 80%; width: fit-content; line-height: 1.45;
                                                                                                                                                                                                          }
                                                                                                                                                                                                              .pfp-msg-typing {
                                                                                                                                                                                                                    background: #f0f3f7; padding: 11px 14px; border-radius: 10px;
@@ -177,6 +208,22 @@
                                                                                                                                                                                                                                                                                                      }
                                                                                                                                                                                                                                                                                                      .pfp-quick-reply-btn:hover { background: #1a3a5c; color: white; }
                                                                                                                                                                                                                                                                                                      .pfp-quick-reply-btn:disabled { opacity: 0.5; cursor: default; }
+                                                                                                                                                                                                                                                                                                     .pfp-menu { margin: -4px 0 14px; }
+                                                                                                                                                                                                                                                                                                     .pfp-menu-heading {
+                                                                                                                                                                                                                                                                                                       font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+                                                                                                                                                                                                                                                                                                       color: #5b6b7d; margin: 14px 2px 8px;
+                                                                                                                                                                                                                                                                                                     }
+                                                                                                                                                                                                                                                                                                     .pfp-menu-btn {
+                                                                                                                                                                                                                                                                                                       display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;
+                                                                                                                                                                                                                                                                                                       background: white; color: #1a3a5c; border: 1px solid #d5dce4; border-radius: 8px;
+                                                                                                                                                                                                                                                                                                       padding: 12px 14px; margin-bottom: 8px; text-align: left; cursor: pointer;
+                                                                                                                                                                                                                                                                                                       font-family: inherit; transition: border-color 0.12s ease, background 0.12s ease;
+                                                                                                                                                                                                                                                                                                     }
+                                                                                                                                                                                                                                                                                                     .pfp-menu-btn:hover { border-color: #1a3a5c; background: #f7f9fb; }
+                                                                                                                                                                                                                                                                                                     .pfp-menu-btn span { flex: 1; min-width: 0; }
+                                                                                                                                                                                                                                                                                                     .pfp-menu-btn b { display: block; font-size: 15px; font-weight: 600; }
+                                                                                                                                                                                                                                                                                                     .pfp-menu-btn small { display: block; font-size: 13px; color: #5b6b7d; margin-top: 3px; }
+                                                                                                                                                                                                                                                                                                     .pfp-menu-btn i { font-style: normal; font-size: 18px; flex-shrink: 0; }
                                                                                                                                                                                                                                                                                                      `;
 
    function injectStyles() {
@@ -247,6 +294,50 @@
              body.scrollTop = body.scrollHeight;
    }
 
+   function clearMenu() {
+             const el = document.getElementById("pfp-menu");
+             if (el) el.remove();
+   }
+
+   function renderMenu(menu) {
+             clearMenu();
+             const body = document.getElementById("pfp-widget-body");
+             const container = document.createElement("div");
+             container.className = "pfp-menu";
+             container.id = "pfp-menu";
+             menu.forEach((group) => {
+                       const heading = document.createElement("div");
+                       heading.className = "pfp-menu-heading";
+                       heading.textContent = group.heading;
+                       container.appendChild(heading);
+                       group.items.forEach((item) => {
+                                 const btn = document.createElement("button");
+                                 btn.type = "button";
+                                 btn.className = "pfp-menu-btn";
+                                 const text = document.createElement("span");
+                                 const label = document.createElement("b");
+                                 label.textContent = item.label;
+                                 text.appendChild(label);
+                                 if (item.sub) {
+                                           const sub = document.createElement("small");
+                                           sub.textContent = item.sub;
+                                           text.appendChild(sub);
+                                 }
+                                 const arrow = document.createElement("i");
+                                 arrow.textContent = "→";
+                                 btn.appendChild(text);
+                                 btn.appendChild(arrow);
+                                 btn.onclick = () => {
+                                           if (awaitingReply || conversationDone) return;
+                                           sendMessage(item.label + " (" + group.track + ")", item.label);
+                                 };
+                                 container.appendChild(btn);
+                       });
+             });
+             body.appendChild(container);
+             body.scrollTop = 0;
+   }
+
    function setInputEnabled(enabled) {
              const input = document.getElementById("pfp-widget-text-input");
              const button = document.getElementById("pfp-widget-send-btn");
@@ -264,10 +355,13 @@
              if (input) input.placeholder = "Conversation ended — thanks for chatting!";
    }
 
-   async function sendMessage(userText) {
+   // displayText, when given, is what the visitor sees in their bubble;
+   // userText is what goes into the history sent to the AI.
+   async function sendMessage(userText, displayText) {
              clearQuickReplies();
+             clearMenu();
              history.push({ role: "user", text: userText });
-             appendUserMessage(userText);
+             appendUserMessage(displayText || userText);
 
           awaitingReply = true;
              setInputEnabled(false);
@@ -412,8 +506,10 @@
              panel.style.height = vv.height + "px";
              panel.style.top = vv.offsetTop + "px";
              panel.style.bottom = "auto";
+             // Keep the opening menu scrolled to the top so the greeting and the
+             // first options stay in view; otherwise follow the latest message.
              const body = document.getElementById("pfp-widget-body");
-             if (body) body.scrollTop = body.scrollHeight;
+             if (body && !document.getElementById("pfp-menu")) body.scrollTop = body.scrollHeight;
    }
 
    function startViewportTracking() {
@@ -455,6 +551,7 @@
                          appendBotMessage(greeting.text);
                          setInputEnabled(true);
                          if (greeting.quickReplies) renderQuickReplies(greeting.quickReplies);
+                         if (greeting.menu) renderMenu(greeting.menu);
              }
    }
 
