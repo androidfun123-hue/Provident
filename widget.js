@@ -61,7 +61,7 @@
              },
    ];
 
-   const TEASER_TEXT = "Ask our Smart Insurance Adviser — free, instant, no obligation.";
+   const TEASER_TEXT = "Chat with our AI adviser";
    const TEASER_DELAY_MS = 4000;
 
    const ERROR_REPLY =
